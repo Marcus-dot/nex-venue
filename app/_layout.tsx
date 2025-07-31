@@ -14,9 +14,13 @@ SplashScreen.setOptions({
 
 export default function RootLayout() {
 
-  const [ fontsLoaded ] = useFonts({
-
-  })
+  const [ fontsLoaded ] = useFonts({ 
+    "Rubik-Bold": require("../assets/fonts/Rubik-Bold.ttf"),
+    "Rubik-SemiBold": require("../assets/fonts/Rubik-SemiBold.ttf"),
+    "Rubik-Medium": require("../assets/fonts/Rubik-Medium.ttf"),
+    "Rubik-Regular": require("../assets/fonts/Rubik-Regular.ttf"),
+    "Rubik-Light": require("../assets/fonts/Rubik-Light.ttf"),
+  });
 
   useEffect(() => {
     if(fontsLoaded) {
@@ -29,6 +33,8 @@ export default function RootLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
     </Stack>
   )
 }

@@ -23,11 +23,13 @@ export const setOnboardingCompleted = async (): Promise<void> => {
 };
 
 export const cacheUserData = async (userData: any): Promise<void> => {
+  
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
   } catch (error) {
     throw error
   }
+  
 };
 
 export const getCachedUserData = async (): Promise<any | null> => {

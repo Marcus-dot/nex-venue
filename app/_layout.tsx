@@ -15,6 +15,7 @@ SplashScreen.setOptions({
 export default function RootLayout() {
 
   const [ fontsLoaded ] = useFonts({ 
+    "Rubik-ExtraBold": require("../assets/fonts/Rubik-ExtraBold.ttf"),
     "Rubik-Bold": require("../assets/fonts/Rubik-Bold.ttf"),
     "Rubik-SemiBold": require("../assets/fonts/Rubik-SemiBold.ttf"),
     "Rubik-Medium": require("../assets/fonts/Rubik-Medium.ttf"),
@@ -35,6 +36,8 @@ export default function RootLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/profile-setup" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/login" options={{ headerShown: false }} />
     </Stack>
   )
 }

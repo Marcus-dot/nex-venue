@@ -1,7 +1,6 @@
-export const appOnboardingPageData = [
-    {
-        backgroundColor: "",
-        title: "Hi, Nice to Meet you",
-        subtitle: "Get Started with your NexVenue Journey"
-    }
-]
+import { RFPercentage } from 'react-native-responsive-fontsize';
+
+export const HEADING_FONT_SIZE = RFPercentage(3.8);
+export const SUBTITlE_FONT_SIZE = RFPercentage(1.8);
+export const TEXT_SIZE = RFPercentage(2);
+export const ICON_SIZE = RFPercentage(4);

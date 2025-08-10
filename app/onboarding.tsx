@@ -1,9 +1,11 @@
 import { View, Text, Image, Alert } from 'react-native';
-import Onboarding from 'react-native-onboarding-swiper';
+import { RFPercentage } from 'react-native-responsive-fontsize';
 import { useRouter } from 'expo-router';
+import Onboarding from 'react-native-onboarding-swiper';
 
 import { setOnboardingCompleted } from '@/utils/storage';
-import { appOnboardingPageData } from '@/constants';
+import { appOnboardingPageData } from '@/constants/data';
+import { HEADING_FONT_SIZE, SUBTITlE_FONT_SIZE } from '@/constants';
 
 const OnboardingScreen = () => {
 
@@ -23,19 +25,21 @@ const OnboardingScreen = () => {
                 </View>
             </View>,
         titleStyles: {
-            fontSize: 3,
+            fontSize: HEADING_FONT_SIZE,
+            fontFamily: "Rubik-ExtraBold"
         },
         subTitleStyles: {
-            fontSize: 3
+            fontSize: SUBTITlE_FONT_SIZE,
+            fontFamily: 'Rubik-Medium',
         }
-    }))
+    }))     
 
     const handleComplete = async () => {
 
         try {
 
             await setOnboardingCompleted();
-            // router.replace("")
+            router.replace("/welcome")
 
         } catch (error) {
             Alert.alert(error instanceof Error ? error.message : "An unknown error occurred")
@@ -48,6 +52,7 @@ const OnboardingScreen = () => {
       <Onboarding 
         onDone={handleComplete}
         onSkip={handleComplete}
+        containerStyles={{ paddingHorizontal: RFPercentage(3.0)}}
         pages={pages}
       />
     </View>

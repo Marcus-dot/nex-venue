@@ -44,6 +44,7 @@ export default function RootLayout() {
           <Stack.Screen name="auth/login" options={{ headerShown: false }} />
           <Stack.Screen name="auth/terms" options={{ headerShown: false }} />
           <Stack.Screen name="auth/verify" options={{ headerShown: false }} />
+          <Stack.Screen name="(app)" options={{ headerShown: false }} />
         </Stack>
       </PhoneNumberProvider>
     </AuthProvider>

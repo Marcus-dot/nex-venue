@@ -7,7 +7,7 @@ import { router } from "expo-router";
 
 import { ACCENT_COlOR, ICON_SIZE, SCREEN_HEIGHT, TEXT_SIZE } from "@/constants";
 import { sendVerificationCode } from '@/services/auth';
-import { formatPhoneNumber } from '@/utils';
+import { formatPhoneNumber } from '@/utils/reusable-functions';
 import { usePhoneNumber } from "@/context/phone-number-context";
 import { useAuth } from '@/context/auth-context';
 import LongTextInput from "@/components/long-text-input";
@@ -43,7 +43,13 @@ const Login = () => {
 
       setLoading(true)
 
+      console.log("reached here")
+
+      console.log(formattedPhoneNumber);
+
       const confirmation = await sendVerificationCode(formattedPhoneNumber);
+
+      console.log("also reached here")
 
       setVerificationId(confirmation);
 

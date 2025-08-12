@@ -1,28 +1,26 @@
-import { useRouter } from "expo-router";
 import { useEffect } from "react";
+import { router } from "expo-router";
+
+import { hasCompletedOnboarding } from "@/utils/storage";
+import { useAuth } from "@/context/auth-context";
 
 import AppLoader from "@/components/app-loader";
-import { hasCompletedOnboarding } from "@/utils/storage";
 
 export default function Index() {
 
-  const router = useRouter();
-
-  const isLoading = false;
-  const isNewUser = false;
-  const user = false;
-  const userProfile = {
-    profileComplete: false
-  }
+  const { isLoading, isNewUser, user, userProfile } = useAuth();
 
   useEffect(() => {
     const checkInitialRoute = async () => {
 
+      if(isLoading) return;
+
       if(user) {
+
         if(isNewUser || (userProfile && !userProfile.profileComplete)) {
           router.replace("/auth/profile-setup")
         } else {
-          
+          router.replace("/(app)/home");
         }
       } else {
           const onboardingDone = await hasCompletedOnboarding();

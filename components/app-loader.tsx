@@ -1,10 +1,9 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { View, ActivityIndicator } from 'react-native'
 
 const AppLoader = () => {
   return (
-    <View className='flex-1 flex flex-col items-center justify-center'>
-      <Text className='text-5xl'>AppLoader</Text>
+    <View className='flex-1 flex flex-col items-center bg-background justify-center'>
+      <ActivityIndicator size={"large"} />
     </View>
   )
 }

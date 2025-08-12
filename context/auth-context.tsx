@@ -1,23 +1,9 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import { FirebaseAuthTypes, onAuthStateChanged, getAuth } from "@react-native-firebase/auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firestore from '@react-native-firebase/firestore';
 
-type User = {
-  uid: string;
-  phoneNumber: string | null;
-};
-
-type UserProfile = {
-    uid: string | undefined;
-    phoneNumber: string;
-    fullName?: string;
-    email?: string;
-    gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
-    createdAt: number;
-    profileComplete?: boolean;
-    avatar: string | null;
-}
+import type { User, UserProfile } from '@/types/auth';
 
 type AuthContextType = {
     user: User | null;
@@ -126,7 +112,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     useEffect(() => {
 
-        const subscriber = auth().onAuthStateChanged(async (currentUser) => {
+        const subscriber = onAuthStateChanged(getAuth(), async (currentUser) => {
             if(currentUser) {
                 const userObj: User = {
                     uid: currentUser.uid,

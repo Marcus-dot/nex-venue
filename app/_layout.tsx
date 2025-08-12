@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { PhoneNumberProvider } from "@/context/phone-number-context";
+import { AuthProvider } from "@/context/auth-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,12 +34,18 @@ export default function RootLayout() {
   if(!fontsLoaded) return null;
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/profile-setup" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-    </Stack>
+    <AuthProvider>
+      <PhoneNumberProvider>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="welcome" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/profile-setup" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/terms" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/verify" options={{ headerShown: false }} />
+        </Stack>
+      </PhoneNumberProvider>
+    </AuthProvider>
   )
 }

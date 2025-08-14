@@ -53,18 +53,19 @@ const Verify = () => {
 
         const userProf = await fetchUserProfile(userObj)
 
-        setPhoneNumber("")
+        setPhoneNumber("");
 
         if(!userProf?.profileComplete) {
           router.replace("/auth/profile-setup");
         } else {
-          
+          router.replace("/(app)/home")
         }
 
       } else {
         throw new Error("Something went wrong. Please try again")
       }
     } catch (error) {
+      console.error(error)
       Alert.alert('Error', 'Failed to verify code. Please try again.');
     } finally {
       setLoading(false);
@@ -124,7 +125,7 @@ const Verify = () => {
           <View className='w-full h-[92%] flex items-center'>
 
             <View className={`relative mt-6 w-full flex items-center justify-center`}>
-              <Text style={{ fontSize: TEXT_SIZE * 0.75}} className={`mb-8 font-rubik-medium max-w-[90%] dark:text-white text-black`}>Enter the 6-digit code sent to your phone</Text>
+              <Text style={{ fontSize: TEXT_SIZE * 0.75}} className={`mb-8 font-rubik-medium max-w-[90%] text-white`}>Enter the 6-digit code sent to your phone</Text>
               <LongTextInput handleTextChange={setVerificationCode} text={verificationCode} max={6} type='code' placeholder='Enter OTP' />
             </View>
 

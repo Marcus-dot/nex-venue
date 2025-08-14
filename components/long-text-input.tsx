@@ -9,9 +9,10 @@ interface LongTextInputProps {
     type?: string
     handleTextChange: (text: string) => void
     max?: number
+    width?: string
 }
 
-const LongTextInput = ({placeholder, text, type, handleTextChange, max} : LongTextInputProps) => {
+const LongTextInput = ({placeholder, width, text, type, handleTextChange, max} : LongTextInputProps) => {
 
         const textContentType = 
             type === "telephoneNumber" ? "telephoneNumber" : type === "birthdate" ? "birthdate" : "name";
@@ -19,7 +20,7 @@ const LongTextInput = ({placeholder, text, type, handleTextChange, max} : LongTe
   return (
     <TextInput
         style={{ fontSize: TEXT_SIZE, height: RFPercentage(6.5)}}
-        className={`w-[90%] text-white font-rubik-bold px-4 p-2 bg-zinc-800 rounded-lg`}
+        className={`w-[${width ? width : "90%"}] text-white font-rubik-bold px-4 p-2 bg-zinc-800 rounded-lg`}
         placeholder={placeholder}
         placeholderTextColor={"gray"}
         defaultValue={text}

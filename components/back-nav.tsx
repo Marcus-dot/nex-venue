@@ -14,7 +14,7 @@ const BackNav = ({ title, handlePress}: BackNavProps) => {
         <TouchableOpacity onPress={handlePress} className='flex flex-row gap-1 items-center'>
             <Entypo name="chevron-left" size={ICON_SIZE} color={"white"} />
             {title && 
-                <Text style={{fontSize: TEXT_SIZE * 0.95}} className='font-rubik-semibold dark:text-white'>{title}</Text>
+                <Text style={{fontSize: TEXT_SIZE * 0.95}} className='font-rubik-semibold text-white'>{title}</Text>
             }
         </TouchableOpacity>
     </View>

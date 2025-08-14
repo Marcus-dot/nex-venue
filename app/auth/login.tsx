@@ -13,6 +13,7 @@ import { useAuth } from '@/context/auth-context';
 import LongTextInput from "@/components/long-text-input";
 import ActionButton from "@/components/action-button";
 import BackNav from "@/components/back-nav";
+import { getAuth } from '@react-native-firebase/auth';
 
 const Login = () => {
 
@@ -69,7 +70,7 @@ const Login = () => {
           <BackNav title="Continue with Phone Number" handlePress={() => router.back()} />
           <View className="w-full h-[92%] flex items-center">
             <View className={`relative mt-6 w-full flex items-center justify-center`}>
-              <Text style={{ fontSize: TEXT_SIZE * 0.75}} className={`mb-8 font-rubik-medium max-w-[90%] dark:text-white text-black`}>Enter your Phone Number and we will send you a code</Text>
+              <Text style={{ fontSize: TEXT_SIZE * 0.75}} className={`mb-8 font-rubik-medium max-w-[90%] text-white`}>Enter your Phone Number and we will send you a code</Text>
               <LongTextInput handleTextChange={setPhoneNumber} text={phoneNumber} type="telephoneNumber" placeholder="+26077.." />
             </View>
 
@@ -81,7 +82,7 @@ const Login = () => {
               router.push("/auth/terms")
             }} className="w-[90%] mt-5 flex-row flex items-center justify-center flex-wrap">
               <Ionicons name="checkmark-circle-outline" size={ICON_SIZE * 0.5} color={ACCENT_COlOR} />
-              <Text style={{fontSize: TEXT_SIZE * 0.65}} className={`font-rubik-medium dark:text-white text-black`}> By signing in, you agree to the </Text> 
+              <Text style={{fontSize: TEXT_SIZE * 0.65}} className={`font-rubik-medium text-white`}> By signing in, you agree to the </Text> 
               <TouchableOpacity onPress={() => {
                   router.push({
                       pathname: "/auth/terms",

@@ -92,9 +92,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     }
 
     const updateUserProfile = async (data: Partial<UserProfile>) => {
+        
         if (!user) return;
 
         try {
+
             const userRef = firestore().collection('users').doc(user.uid);
             await userRef.update(data);
 
@@ -108,6 +110,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         } catch (error) {
             throw error;
         }
+
     }
 
     useEffect(() => {
@@ -125,7 +128,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 setUserProfile(null);
             }
 
-            setIsLoading(false)
+            setIsLoading(false);
+
         });
 
         return subscriber;

@@ -23,13 +23,13 @@ const OnboardingScreen = () => {
         title: page.title,
         subtitle: page.subtitle,
         image: (
-            <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%', paddingBottom: 24 }}>
+            <View className='overflow-visible' style={{ alignItems: 'center', justifyContent: 'center', width: '100%', paddingBottom: 24 }}>
                 <LottieView
                     source={animations[idx]}
                     autoPlay
                     loop
-                    style={{ width: RFPercentage(36), height: RFPercentage(36) }}
-                    resizeMode="contain"
+                    style={{ width: RFPercentage(50), height: RFPercentage(20) }}
+                    resizeMode="cover"
                 />
             </View>
         ),

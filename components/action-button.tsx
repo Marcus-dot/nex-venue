@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text, TouchableOpacity } from 'react-native'
+import { ActivityIndicator, DimensionValue, Text, TouchableOpacity } from 'react-native'
 import { Entypo } from '@expo/vector-icons';
 
 import { ICON_SIZE, SCREEN_HEIGHT, TEXT_SIZE } from '@/constants';
@@ -8,11 +8,12 @@ interface actionButtonProps {
     buttonText: string;
     loading?: boolean;
     showArrow: boolean
+    width?: DimensionValue
 }
 
-const ActionButton = ({ handlePress, buttonText, loading, showArrow }: actionButtonProps) => {
+const ActionButton = ({ handlePress, width, buttonText, loading, showArrow }: actionButtonProps) => {
   return (
-    <TouchableOpacity disabled={loading} style={{ height: SCREEN_HEIGHT * 0.075}} className={`bg-accent w-[90%] mt-6 pr-2 pl-3 rounded-2xl flex flex-row items-center ${loading ? "opacity-50 justify-center" : "opacity-100 justify-between"}`} onPress={handlePress}>
+    <TouchableOpacity disabled={loading} style={{ height: SCREEN_HEIGHT * 0.075, width: width ? width: "90%"}} className={`bg-accent mt-6 pr-2 pl-3 rounded-2xl flex flex-row items-center ${loading ? "opacity-50 justify-center" : "opacity-100 justify-between"}`} onPress={handlePress}>
         {loading ? 
             <ActivityIndicator size={"large"} />
         :

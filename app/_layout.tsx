@@ -34,19 +34,19 @@ export default function RootLayout() {
   if(!fontsLoaded) return null;
 
   return (
-    <AuthProvider>
-      <PhoneNumberProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="welcome" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/profile-setup" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/terms" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/verify" options={{ headerShown: false }} />
-          <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        </Stack>
-      </PhoneNumberProvider>
-    </AuthProvider>
+    <PhoneNumberProvider>
+      <AuthProvider>
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="welcome" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/profile-setup" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/terms" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/verify" options={{ headerShown: false }} />
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
+          </Stack>
+      </AuthProvider>
+    </PhoneNumberProvider>
   )
 }

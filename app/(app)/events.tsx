@@ -3,8 +3,8 @@ import React from 'react'
 
 const Events = () => {
   return (
-    <View>
-      <Text>Events</Text>
+    <View className='bg-background flex-1 flex items-center justify-center'>
+      <Text className='text-white'>Events</Text>
     </View>
   )
 }

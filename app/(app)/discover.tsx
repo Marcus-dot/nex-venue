@@ -3,8 +3,8 @@ import React from 'react'
 
 const Discover = () => {
   return (
-    <View>
-      <Text>Discover</Text>
+    <View className='bg-background flex-1 flex items-center justify-center'>
+      <Text className='text-white'>Discover</Text>
     </View>
   )
 }

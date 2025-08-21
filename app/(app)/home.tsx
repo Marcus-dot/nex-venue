@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 const Home = () => {
+
   const { user } = useAuth();
   const [latestEvents, setLatestEvents] = useState<Event[]>([]);
   const [userEvents, setUserEvents] = useState<Event[]>([]);
@@ -17,7 +18,7 @@ const Home = () => {
     if (!user) return;
 
     try {
-      // Fetch latest events (limit to 3 for preview)
+
       const latestSnapshot = await firestore()
         .collection('events')
         .orderBy('createdAt', 'desc')
@@ -29,7 +30,6 @@ const Home = () => {
         ...doc.data()
       })) as Event[];
 
-      // Fetch user's events (limit to 3 for preview)
       const userSnapshot = await firestore()
         .collection('events')
         .where('creatorId', '==', user.uid)
@@ -62,7 +62,10 @@ const Home = () => {
   };
 
   const EventCard = ({ event, isPreview = false }: { event: Event; isPreview?: boolean }) => (
-    <TouchableOpacity className="bg-gray-800 p-4 rounded-xl mb-3 border border-gray-700">
+    <TouchableOpacity onPress={() => router.push({
+      pathname: "/(app-screens)/(home)/event-screen",
+      params: {eventId: event.id}
+    })} className="bg-gray-800 p-4 rounded-xl mb-3 border border-gray-700">
       <Text className="text-white font-rubik-semibold text-lg mb-2">{event.title}</Text>
       <Text className="text-gray-300 font-rubik text-sm mb-2" numberOfLines={isPreview ? 2 : undefined}>
         {event.description}

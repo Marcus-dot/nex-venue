@@ -4,6 +4,7 @@ import { useAuth } from '@/context/auth-context';
 import firestore from '@react-native-firebase/firestore';
 import type { Event } from "../../types/events";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 const Discover = () => {
   const { user } = useAuth();
@@ -106,11 +107,15 @@ const Discover = () => {
   };
 
   const EventCard = ({ event }: { event: Event }) => {
-    const isCreator = event.creatorId === user?.uid;
+
     const isAttending = attendingEvents.has(event.id);
+    const isCreator = event.creatorId === user?.uid;
 
     return (
-      <View className="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
+      <TouchableOpacity onPress={() => router.push({
+        pathname: "/(app-screens)/(home)/event-screen",
+        params: {eventId: event.id}
+      })} className="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
         <View className="flex-row justify-between items-start mb-3">
           <View className="flex-1">
             <Text className="text-white font-rubik-semibold text-lg mb-1">{event.title}</Text>
@@ -154,7 +159,7 @@ const Discover = () => {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

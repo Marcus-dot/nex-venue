@@ -11,8 +11,9 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
     return (
         <View className="" style={styles.tabBarContainer}>
-            <BlurView style={styles.tabBar} className="absolute overflow-hidden" tint="systemThickMaterialDark" intensity={70}>
+            <BlurView style={styles.tabBar} className="absolute overflow-hidden" tint="systemChromeMaterialDark" intensity={70}>
                 {state.routes.map((route, index) => {
+
                     const { options } = descriptors[route.key];
 
                     const label = 
@@ -20,7 +21,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                         ? options.tabBarLabel 
                         : options.title !== undefined
                          ? options.title
-                         : route.name
+                         : route.name;
 
                     const isFocused = state.index === index;
 
@@ -53,8 +54,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                             color={isFocused ? ACCENT_COlOR : "white"}
                             label={label as string}
                         />
-                    )
-
+                    )                
                 })}
             </BlurView>
         </View>

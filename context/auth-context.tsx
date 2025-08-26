@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { FirebaseAuthTypes, onAuthStateChanged, getAuth } from "@react-native-firebase/auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FirebaseAuthTypes, getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import firestore from '@react-native-firebase/firestore';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import type { User, UserProfile } from '@/types/auth';
 
@@ -10,6 +10,7 @@ type AuthContextType = {
     userProfile: UserProfile | null;
     isLoading: boolean;
     isNewUser: boolean;
+    isAdmin: boolean;
     verificationId: FirebaseAuthTypes.ConfirmationResult | null;
     setVerificationId: (confirm: FirebaseAuthTypes.ConfirmationResult) => void;
     updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
@@ -21,30 +22,31 @@ export const AuthContext = createContext<AuthContextType>({
     userProfile: null,
     isLoading: true,
     isNewUser: false,
+    isAdmin: false,
     verificationId: null,
-    setVerificationId: () => {},
-    updateUserProfile: async () => {},
+    setVerificationId: () => { },
+    updateUserProfile: async () => { },
     fetchUserProfile: async () => null
 });
 
 export const cacheUserData = async (userData: UserProfile) => {
-  try {
-    await AsyncStorage.setItem('userData', JSON.stringify(userData));
-  } catch (error) {
-    // error intentionally ignored
-  }
+    try {
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+    } catch (error) {
+        // error intentionally ignored
+    }
 };
 
 export const getCachedUserData = async (): Promise<UserProfile | null> => {
-  try {
-    const userData = await AsyncStorage.getItem('userData');
-    return userData ? JSON.parse(userData) : null;
-  } catch (error) {
-    return null;
-  }
+    try {
+        const userData = await AsyncStorage.getItem('userData');
+        return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+        return null;
+    }
 };
 
-export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -52,16 +54,26 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     const [isNewUser, setIsNewUser] = useState(false);
     const [verificationId, setVerificationId] = useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
 
+    // Computed value for admin status
+    const isAdmin = userProfile?.role === 'admin';
+
     const fetchUserProfile = async (currentUser: User) => {
         try {
 
             const userRef = firestore().collection('users').doc(currentUser.uid);
             const userSnap = await userRef.get();
 
-            if(userSnap.exists()) {
+            if (userSnap.exists()) {
                 const userData = userSnap.data() as UserProfile;
+
+                // Handle existing users who don't have a role (backward compatibility)
+                if (!userData.role) {
+                    userData.role = 'user';
+                    await userRef.update({ role: 'user' });
+                }
+
                 setUserProfile(userData);
-                if(userData.profileComplete) {
+                if (userData.profileComplete) {
                     setIsNewUser(false);
                 } else {
                     setIsNewUser(true)
@@ -72,6 +84,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
                 const newUserData: UserProfile = {
                     uid: currentUser.uid,
                     phoneNumber: currentUser.phoneNumber || '',
+                    role: 'user', // Default role for new users
                     createdAt: Date.now(),
                     profileComplete: false,
                     avatar: null,
@@ -86,13 +99,19 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
         } catch (error) {
             const cachedData = await getCachedUserData();
-            if (cachedData) setUserProfile(cachedData);
+            if (cachedData) {
+                // Handle cached data without role
+                if (!cachedData.role) {
+                    cachedData.role = 'user';
+                }
+                setUserProfile(cachedData);
+            }
             return null;
         }
     }
 
     const updateUserProfile = async (data: Partial<UserProfile>) => {
-        
+
         if (!user) return;
 
         try {
@@ -116,7 +135,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     useEffect(() => {
 
         const subscriber = onAuthStateChanged(getAuth(), async (currentUser) => {
-            if(currentUser) {
+            if (currentUser) {
                 const userObj: User = {
                     uid: currentUser.uid,
                     phoneNumber: currentUser.phoneNumber,
@@ -141,6 +160,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         userProfile,
         isLoading,
         isNewUser,
+        isAdmin,
         verificationId,
         setVerificationId,
         updateUserProfile,

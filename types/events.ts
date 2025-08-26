@@ -9,4 +9,6 @@ export interface Event {
   creatorName: string;
   attendees: string[];
   createdAt: number;
+  currentAgendaItem?: string; // For live agenda tracking
+  agendaLastUpdated?: number; // When the agenda was last updated
 }

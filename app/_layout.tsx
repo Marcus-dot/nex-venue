@@ -1,11 +1,11 @@
 import "../global.css";
 
-import { useEffect } from "react";
+import { AuthProvider } from "@/context/auth-context";
+import { PhoneNumberProvider } from "@/context/phone-number-context";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { PhoneNumberProvider } from "@/context/phone-number-context";
-import { AuthProvider } from "@/context/auth-context";
+import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -16,7 +16,7 @@ SplashScreen.setOptions({
 
 export default function RootLayout() {
 
-  const [ fontsLoaded ] = useFonts({ 
+  const [fontsLoaded] = useFonts({
     "Rubik-ExtraBold": require("../assets/fonts/Rubik-ExtraBold.ttf"),
     "Rubik-Bold": require("../assets/fonts/Rubik-Bold.ttf"),
     "Rubik-SemiBold": require("../assets/fonts/Rubik-SemiBold.ttf"),
@@ -26,27 +26,29 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if(fontsLoaded) {
+    if (fontsLoaded) {
       SplashScreen.hide();
     }
-  }, [fontsLoaded]) 
+  }, [fontsLoaded])
 
-  if(!fontsLoaded) return null;
+  if (!fontsLoaded) return null;
 
   return (
     <PhoneNumberProvider>
       <AuthProvider>
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="welcome" options={{ headerShown: false }} />
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="auth/profile-setup" options={{ headerShown: false }} />
-            <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-            <Stack.Screen name="auth/terms" options={{ headerShown: false }} />
-            <Stack.Screen name="auth/verify" options={{ headerShown: false }} />
-            <Stack.Screen name="(app)" options={{ headerShown: false }} />
-            <Stack.Screen name="(app-screens)/(home)/event-screen" options={{ headerShown: false }} />
-          </Stack>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="welcome" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/profile-setup" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/terms" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/verify" options={{ headerShown: false }} />
+          <Stack.Screen name="(app)" options={{ headerShown: false }} />
+          <Stack.Screen name="(app-screens)/(home)/event-screen" options={{ headerShown: false }} />
+          <Stack.Screen name="(app-screens)/(profile)/edit-profile" options={{ headerShown: false }} />
+          <Stack.Screen name="(app-screens)/(chat)/event-chat" options={{ headerShown: false }} />
+        </Stack>
       </AuthProvider>
     </PhoneNumberProvider>
   )

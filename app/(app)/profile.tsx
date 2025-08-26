@@ -1,13 +1,13 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
-import firestore from '@react-native-firebase/firestore';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { logoutUser } from '@/services/auth';
+import firestore from '@react-native-firebase/firestore';
 import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Profile = () => {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isAdmin } = useAuth();
   const [stats, setStats] = useState({
     eventsCreated: 0,
     eventsAttending: 0,
@@ -55,13 +55,28 @@ const Profile = () => {
   }, [user]);
 
   const handleLogout = async () => {
-      try {
-          await logoutUser(); 
-          router.replace("/welcome");
-          Alert.alert("Signed out succesfully")
-      } catch (error) {
-        Alert.alert("Failed to logout. Something went wrong")
-      }
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logoutUser();
+              router.replace("/welcome");
+            } catch (error) {
+              Alert.alert("Failed to logout. Something went wrong")
+            }
+          },
+        },
+      ]
+    );
   };
 
   const StatCard = ({ title, value, subtitle }: { title: string; value: number; subtitle?: string }) => (
@@ -89,31 +104,60 @@ const Profile = () => {
         <View className="items-center mb-8">
           <View className="w-20 h-20 bg-accent rounded-full items-center justify-center mb-4">
             <Text className="text-white font-rubik-bold text-2xl">
-              {userProfile?.phoneNumber?.slice(-2) || 'U'}
+              {userProfile?.fullName?.charAt(0).toUpperCase() || userProfile?.phoneNumber?.slice(-2) || 'U'}
             </Text>
           </View>
           <Text className="text-white font-rubik-bold text-xl">
             {userProfile?.fullName || 'User'}
           </Text>
           <Text className="text-gray-400 font-rubik text-sm">
+            {userProfile?.phoneNumber}
+          </Text>
+          {isAdmin && (
+            <View className="bg-accent px-3 py-1 rounded-full mt-2">
+              <Text className="text-white font-rubik-semibold text-xs">ADMIN</Text>
+            </View>
+          )}
+          <Text className="text-gray-400 font-rubik text-sm mt-1">
             Member since {new Date(userProfile?.createdAt || Date.now()).toLocaleDateString()}
           </Text>
         </View>
+
+        {/* Admin Privileges Notice */}
+        {isAdmin && (
+          <View className="bg-accent/20 border border-accent p-4 rounded-xl mb-6">
+            <View className="flex-row items-center mb-2">
+              <Text className="text-accent font-rubik-bold text-lg">🛡️ Admin Privileges</Text>
+            </View>
+            <Text className="text-white font-rubik text-sm mb-2">
+              You have administrator access with the following privileges:
+            </Text>
+            <Text className="text-gray-300 font-rubik text-sm">
+              • Create and manage event agendas
+            </Text>
+            <Text className="text-gray-300 font-rubik text-sm">
+              • Set live agenda items during events
+            </Text>
+            <Text className="text-gray-300 font-rubik text-sm">
+              • Real-time agenda updates for all attendees
+            </Text>
+          </View>
+        )}
 
         {/* Stats Section */}
         <View className="mb-8">
           <Text className="text-white font-rubik-semibold text-lg mb-4">Your Activity</Text>
           <View className="flex-row">
-            <StatCard 
-              title="Events Created" 
+            <StatCard
+              title="Events Created"
               value={stats.eventsCreated}
             />
-            <StatCard 
-              title="Events Attending" 
+            <StatCard
+              title="Events Attending"
               value={stats.eventsAttending}
             />
-            <StatCard 
-              title="Total Attendees" 
+            <StatCard
+              title="Total Attendees"
               value={stats.totalAttendees}
               subtitle="across your events"
             />
@@ -122,10 +166,15 @@ const Profile = () => {
 
         {/* Profile Actions */}
         <View className="flex flex-col gap-y-3">
-          <TouchableOpacity className="bg-gray-800 p-4 rounded-xl flex-row justify-between items-center">
+          <TouchableOpacity
+            onPress={() => router.push('/(app-screens)/(profile)/edit-profile')}
+            className="bg-gray-800 p-4 rounded-xl flex-row justify-between items-center"
+          >
             <View>
               <Text className="text-white font-rubik-medium">Edit Profile</Text>
-              <Text className="text-gray-400 font-rubik text-sm">Update your information</Text>
+              <Text className="text-gray-400 font-rubik text-sm">
+                Update your information{isAdmin ? ' and admin settings' : ''}
+              </Text>
             </View>
             <Text className="text-gray-400 font-rubik text-lg">›</Text>
           </TouchableOpacity>

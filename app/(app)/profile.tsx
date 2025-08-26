@@ -179,6 +179,17 @@ const Profile = () => {
             <Text className="text-gray-400 font-rubik text-lg">›</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            onPress={() => router.push('/(app-screens)/(chat)/messages-list' as any)}
+            className="bg-gray-800 p-4 rounded-xl flex-row justify-between items-center"
+          >
+            <View>
+              <Text className="text-white font-rubik-medium">Direct Messages</Text>
+              <Text className="text-gray-400 font-rubik text-sm">View your private conversations</Text>
+            </View>
+            <Text className="text-gray-400 font-rubik text-lg">›</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity className="bg-gray-800 p-4 rounded-xl flex-row justify-between items-center">
             <View>
               <Text className="text-white font-rubik-medium">Event History</Text>

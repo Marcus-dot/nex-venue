@@ -247,7 +247,7 @@ const EventScreen = () => {
     const handleConnect = (attendee: AttendeeInfo) => {
       Alert.alert(
         `Connect with ${attendee.fullName}`,
-        `Would you like to connect with ${attendee.fullName}?`,
+        `Choose how you'd like to connect with ${attendee.fullName}:`,
         [
           { text: 'Cancel', style: 'cancel' },
           {
@@ -261,16 +261,31 @@ const EventScreen = () => {
                   {
                     text: 'Start Chat',
                     onPress: () => {
-                      // Future: Open direct message chat
-                      Alert.alert(
-                        'Direct Messaging',
-                        'Direct messaging feature coming soon! For now, you can reach out via phone or in the main event chat.',
-                        [{ text: 'OK' }]
-                      );
+                      router.push({
+                        pathname: '/(app-screens)/(chat)/direct-chat' as any,
+                        params: {
+                          recipientId: attendee.uid,
+                          recipientName: attendee.fullName,
+                          recipientPhone: attendee.phoneNumber
+                        }
+                      });
                     }
                   }
                 ]
               );
+            }
+          },
+          {
+            text: 'Start Direct Chat',
+            onPress: () => {
+              router.push({
+                pathname: '/(app-screens)/(chat)/direct-chat' as any,
+                params: {
+                  recipientId: attendee.uid,
+                  recipientName: attendee.fullName,
+                  recipientPhone: attendee.phoneNumber
+                }
+              });
             }
           },
           {

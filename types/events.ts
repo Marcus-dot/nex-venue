@@ -11,4 +11,6 @@ export interface Event {
   createdAt: number;
   currentAgendaItem?: string; // For live agenda tracking
   agendaLastUpdated?: number; // When the agenda was last updated
+  imageUrl?: string; // Optional event image
+  imageDescription?: string; // Alt text for accessibility
 }

@@ -1,11 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Modal, TextInput, Alert } from 'react-native';
-import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import firestore from '@react-native-firebase/firestore';
-import type { Event } from "../../types/events";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Modal, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import type { Event } from "../../types/events";
 
 const Events = () => {
 
@@ -27,6 +27,8 @@ const Events = () => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageDescription, setImageDescription] = useState('');
   const [creating, setCreating] = useState(false);
 
   useFocusEffect(
@@ -92,7 +94,7 @@ const Events = () => {
     if (!user || !userProfile) return;
 
     if (!title.trim() || !description.trim() || !date.trim() || !time.trim() || !location.trim()) {
-      Alert.alert('Error', 'Please fill in all fields.');
+      Alert.alert('Error', 'Please fill in all required fields.');
       return;
     }
 
@@ -104,6 +106,8 @@ const Events = () => {
         date: date.trim(),
         time: time.trim(),
         location: location.trim(),
+        imageUrl: imageUrl.trim() || undefined,
+        imageDescription: imageDescription.trim() || undefined,
         creatorId: user.uid,
         creatorName: userProfile.phoneNumber || 'Anonymous',
         attendees: [],
@@ -111,22 +115,24 @@ const Events = () => {
       };
 
       const docRef = await firestore().collection('events').add(eventData);
-      
+
       const newEvent: Event = {
         id: docRef.id,
         ...eventData
       };
 
       setCreatedEvents(prev => [newEvent, ...prev]);
-      
+
       // Reset form
       setTitle('');
       setDescription('');
       setDate('');
       setTime('');
       setLocation('');
+      setImageUrl('');
+      setImageDescription('');
       setShowCreateModal(false);
-      
+
       Alert.alert('Success', 'Event created successfully!');
     } catch (error) {
       console.error('Error creating event:', error);
@@ -164,15 +170,15 @@ const Events = () => {
           </View>
         )}
       </View>
-      
+
       <Text className="text-gray-300 font-rubik text-sm mb-3">{event.description}</Text>
-      
+
       <View className="mb-4">
         <Text className="text-accent font-rubik-medium text-sm">{event.date} at {event.time}</Text>
         <Text className="text-gray-400 font-rubik text-sm">{event.location}</Text>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => viewAttendees(event)}
         className="bg-gray-700 px-3 py-2 rounded-lg self-start"
       >
@@ -193,13 +199,13 @@ const Events = () => {
 
   return (
     <View className="bg-background flex-1">
-      <ScrollView 
+      <ScrollView
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <SafeAreaView className="p-4 pt-12">
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-white font-rubik-bold text-2xl">Your Events</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setShowCreateModal(true)}
               className="bg-accent px-4 py-2 rounded-lg"
             >
@@ -236,7 +242,7 @@ const Events = () => {
             ) : (
               <View className="bg-gray-800 p-6 rounded-xl items-center">
                 <Text className="text-gray-400 font-rubik text-lg mb-2">No events created yet</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => setShowCreateModal(true)}
                   className="bg-accent px-4 py-2 rounded-lg"
                 >
@@ -279,7 +285,7 @@ const Events = () => {
             <ScrollView showsVerticalScrollIndicator={false}>
               <View className="space-y-4">
                 <View>
-                  <Text className="text-white font-rubik-medium mb-2">Title</Text>
+                  <Text className="text-white font-rubik-medium mb-2">Title *</Text>
                   <TextInput
                     value={title}
                     onChangeText={setTitle}
@@ -290,7 +296,7 @@ const Events = () => {
                 </View>
 
                 <View>
-                  <Text className="text-white font-rubik-medium mb-2">Description</Text>
+                  <Text className="text-white font-rubik-medium mb-2">Description *</Text>
                   <TextInput
                     value={description}
                     onChangeText={setDescription}
@@ -303,7 +309,32 @@ const Events = () => {
                 </View>
 
                 <View>
-                  <Text className="text-white font-rubik-medium mb-2">Date</Text>
+                  <Text className="text-white font-rubik-medium mb-2">Event Image (Optional)</Text>
+                  <TextInput
+                    value={imageUrl}
+                    onChangeText={setImageUrl}
+                    placeholder="Enter image URL (https://...)"
+                    placeholderTextColor="#9CA3AF"
+                    className="bg-gray-800 text-white p-3 rounded-lg font-rubik"
+                  />
+                  <Text className="text-gray-500 font-rubik text-xs mt-1">
+                    Add an image URL to make your event more appealing
+                  </Text>
+                </View>
+
+                <View>
+                  <Text className="text-white font-rubik-medium mb-2">Image Description (Optional)</Text>
+                  <TextInput
+                    value={imageDescription}
+                    onChangeText={setImageDescription}
+                    placeholder="Describe the image for accessibility"
+                    placeholderTextColor="#9CA3AF"
+                    className="bg-gray-800 text-white p-3 rounded-lg font-rubik"
+                  />
+                </View>
+
+                <View>
+                  <Text className="text-white font-rubik-medium mb-2">Date *</Text>
                   <TextInput
                     value={date}
                     onChangeText={setDate}
@@ -314,7 +345,7 @@ const Events = () => {
                 </View>
 
                 <View>
-                  <Text className="text-white font-rubik-medium mb-2">Time</Text>
+                  <Text className="text-white font-rubik-medium mb-2">Time *</Text>
                   <TextInput
                     value={time}
                     onChangeText={setTime}
@@ -325,7 +356,7 @@ const Events = () => {
                 </View>
 
                 <View>
-                  <Text className="text-white font-rubik-medium mb-2">Location</Text>
+                  <Text className="text-white font-rubik-medium mb-2">Location *</Text>
                   <TextInput
                     value={location}
                     onChangeText={setLocation}

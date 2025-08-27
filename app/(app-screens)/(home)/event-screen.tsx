@@ -9,7 +9,7 @@ import type { Event } from '@/types/events';
 import firestore from '@react-native-firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface AttendeeInfo {
@@ -420,6 +420,22 @@ const EventScreen = () => {
         {/* Tab Content */}
         {activeTab === 'details' && (
           <ScrollView className="flex-1 px-4">
+            {/* Event Image */}
+            {event.imageUrl && (
+              <View className="mb-6 rounded-xl overflow-hidden">
+                <Image
+                  source={{ uri: event.imageUrl }}
+                  className="w-full h-48 bg-gray-700"
+                  resizeMode="cover"
+                />
+                {event.imageDescription && (
+                  <View className="absolute bottom-2 left-2 right-2 bg-black/50 px-3 py-2 rounded-lg">
+                    <Text className="text-white font-rubik text-xs">{event.imageDescription}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
             {/* Event Info */}
             <View className="bg-gray-800 p-4 rounded-xl mb-6">
               <View className="flex-row justify-between items-start mb-4">
@@ -461,6 +477,15 @@ const EventScreen = () => {
                     {event.attendees.length} {event.attendees.length === 1 ? 'person' : 'people'} attending
                   </Text>
                 </View>
+
+                {event.imageUrl && (
+                  <View className="flex-row items-center">
+                    <View className="w-6 h-6 bg-accent rounded-full items-center justify-center mr-3">
+                      <Text className="text-white font-rubik-bold text-xs">🖼️</Text>
+                    </View>
+                    <Text className="text-gray-400 font-rubik text-sm">Event has featured image</Text>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -482,6 +507,7 @@ const EventScreen = () => {
             )}
           </ScrollView>
         )}
+
 
         {activeTab === 'agenda' && (
           <View className="flex-1 px-4">

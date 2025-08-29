@@ -10,9 +10,26 @@ interface LongTextInputProps {
   handleTextChange: (text: string) => void
   max?: number
   width?: string
+  error?: boolean
+  accessibilityLabel?: string
+  accessibilityHint?: string
+  editable?: boolean
+  multiline?: boolean
 }
 
-const LongTextInput = ({ placeholder, width, text, type, handleTextChange, max }: LongTextInputProps) => {
+const LongTextInput = ({
+  placeholder,
+  width,
+  text,
+  type,
+  handleTextChange,
+  max,
+  error = false,
+  accessibilityLabel,
+  accessibilityHint,
+  editable = true,
+  multiline = false
+}: LongTextInputProps) => {
 
   const textContentType =
     type === "telephoneNumber" ? "telephoneNumber" :
@@ -37,36 +54,75 @@ const LongTextInput = ({ placeholder, width, text, type, handleTextChange, max }
     type === "telephoneNumber" ? "none" :
       type === "birthdate" ? "none" :
         type === "email" ? "none" :
-          "words";
+          type === "code" ? "none" :
+            "words";
+
+  const getAccessibilityLabel = () => {
+    if (accessibilityLabel) return accessibilityLabel;
+
+    switch (type) {
+      case "telephoneNumber":
+        return "Phone number input field";
+      case "email":
+        return "Email address input field";
+      case "code":
+        return "Verification code input field";
+      default:
+        return placeholder + " input field";
+    }
+  };
+
+  const getAccessibilityHint = () => {
+    if (accessibilityHint) return accessibilityHint;
+
+    switch (type) {
+      case "telephoneNumber":
+        return "Enter your phone number including country code";
+      case "email":
+        return "Enter a valid email address";
+      case "code":
+        return "Enter the verification code sent to your device";
+      default:
+        return `Enter your ${placeholder.toLowerCase()}`;
+    }
+  };
 
   return (
     <TextInput
-      style={{ fontSize: TEXT_SIZE, height: RFPercentage(6.5) }}
-      className={`w-[${width ? width : "90%"}] text-white font-rubik-bold px-4 p-2 bg-zinc-800 rounded-lg`}
+      style={{
+        fontSize: TEXT_SIZE,
+        height: multiline ? RFPercentage(12) : RFPercentage(6.5),
+        textAlignVertical: multiline ? 'top' : 'center'
+      }}
+      className={`w-[${width ? width : "90%"}] text-white font-rubik-bold px-4 py-3 rounded-lg ${error ? 'bg-red-900/20 border border-red-500' : 'bg-zinc-800 border border-gray-700'
+        } ${!editable ? 'opacity-60' : ''}`}
       placeholder={placeholder}
-      placeholderTextColor={"gray"}
-      defaultValue={text}
+      placeholderTextColor={error ? "#fca5a5" : "gray"}
+      value={text}
       onChangeText={handleTextChange}
       textContentType={textContentType}
       keyboardType={keyboardType}
       autoComplete={autoComplete}
       autoCapitalize={autoCapitalize}
-      autoCorrect={false}
-      accessibilityLabel={
-        type === "telephoneNumber" ? "Phone Number Input" :
-          type === "birthdate" ? "Birthday Input" :
-            type === "email" ? "Email Input" :
-              "Name Input"
-      }
-      accessibilityHint={
-        type === "telephoneNumber" ? "Enter your Phone Number" :
-          type === "birthdate" ? "Enter your birthdate (DD/MM/YYYY)" :
-            type === "email" ? "Enter your email address" :
-              "Enter your Name"
-      }
+      autoCorrect={type !== "code" && type !== "telephoneNumber" && type !== "email"}
+      secureTextEntry={type === "password"}
+      editable={editable}
+      multiline={multiline}
+      numberOfLines={multiline ? 4 : 1}
       maxLength={max ? max : 100}
+      // Accessibility props
+      accessible={true}
+      accessibilityLabel={getAccessibilityLabel()}
+      accessibilityHint={getAccessibilityHint()}
+      accessibilityRole="none" // Let TextInput handle its own role
+      accessibilityState={{
+        disabled: !editable
+      }}
+      // Enhanced accessibility for screen readers
+      importantForAccessibility="yes"
+      accessibilityLiveRegion={error ? "polite" : "none"}
     />
-  )
-}
+  );
+};
 
 export default LongTextInput;

@@ -1,8 +1,14 @@
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-import { View, GestureResponderEvent, StyleSheet } from 'react-native'
-import { PlatformPressable } from '@react-navigation/elements';
-import React, { useEffect } from 'react'
 import { Feather } from '@expo/vector-icons';
+import { PlatformPressable } from '@react-navigation/elements';
+import React, { useEffect } from 'react';
+import { GestureResponderEvent, Platform, StyleSheet, View } from 'react-native';
+import Animated, {
+    interpolateColor,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming
+} from "react-native-reanimated";
 
 import { ACCENT_COlOR, CONTAINER_WIDTH, TAB_BAR_ICON_SIZE } from '@/constants';
 
@@ -16,58 +22,155 @@ interface TabBarButtonProps {
 }
 
 const TabBarButton = ({ onPress, onLongPress, isFocused, routeName }: TabBarButtonProps) => {
-
-    const bgColor = useSharedValue(isFocused ? ACCENT_COlOR : "white");
+    const scale = useSharedValue(1);
+    const opacity = useSharedValue(isFocused ? 1 : 0.6);
+    const backgroundColor = useSharedValue(isFocused ? 1 : 0);
 
     useEffect(() => {
-        bgColor.value = withSpring(isFocused ? ACCENT_COlOR : "white", {
-            damping: 15,
-            stiffness: 200
-        })
+        // Smooth spring animation for background
+        backgroundColor.value = withSpring(isFocused ? 1 : 0, {
+            damping: 20,
+            stiffness: 150,
+            mass: 1,
+        });
+
+        // Opacity animation for icon
+        opacity.value = withTiming(isFocused ? 1 : 0.6, {
+            duration: 200,
+        });
+
+        // Scale animation for press feedback
+        if (isFocused) {
+            scale.value = withSpring(1, {
+                damping: 15,
+                stiffness: 200,
+            });
+        }
     }, [isFocused]);
 
-    const animatedBgStyle = useAnimatedStyle(() => ({
-        backgroundColor: bgColor.value
-    }))
+    const animatedBackgroundStyle = useAnimatedStyle(() => ({
+        backgroundColor: interpolateColor(
+            backgroundColor.value,
+            [0, 1],
+            ['transparent', ACCENT_COlOR]
+        ),
+        transform: [
+            {
+                scale: backgroundColor.value === 0 ? 0.8 : 1
+            }
+        ],
+        opacity: backgroundColor.value,
+    }));
+
+    const animatedIconStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+        transform: [
+            { scale: scale.value },
+            {
+                translateY: backgroundColor.value === 1 ? -1 : 0
+            }
+        ],
+    }));
+
+    const handlePressIn = () => {
+        scale.value = withSpring(0.9, {
+            damping: 15,
+            stiffness: 400,
+        });
+    };
+
+    const handlePressOut = () => {
+        scale.value = withSpring(1, {
+            damping: 15,
+            stiffness: 200,
+        });
+    };
+
+    const handlePress = (e: GestureResponderEvent | React.MouseEvent<HTMLAnchorElement>) => {
+        // Add haptic feedback
+        if (Platform.OS === 'ios' && !isFocused) {
+            // Add light haptic feedback if expo-haptics is available
+            // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        onPress(e);
+    };
 
     const icon = {
         home: (props: any) => <Feather name='home' size={TAB_BAR_ICON_SIZE} {...props} />,
-        discover : (props: any) => <Feather name='compass' size={TAB_BAR_ICON_SIZE} {...props} />,
+        discover: (props: any) => <Feather name='compass' size={TAB_BAR_ICON_SIZE} {...props} />,
         events: (props: any) => <Feather name='calendar' size={TAB_BAR_ICON_SIZE} {...props} />,
         profile: (props: any) => <Feather name='user' size={TAB_BAR_ICON_SIZE} {...props} />
-    }
+    };
 
-  return (
-        <PlatformPressable onPress={onPress} onLongPress={onLongPress} style={styles.tabBarItem}>
+    return (
+        <PlatformPressable
+            onPress={handlePress}
+            onLongPress={onLongPress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={styles.tabBarItem}
+        >
             <View style={styles.innerTabBarItem}>
-                {
-                    // @ts-ignore
-                    icon[routeName]({
-                        color: isFocused ? "white" : "black"
-                    })
-                }
-                <Animated.View style={animatedBgStyle} className='absolute z-[-1] w-full h-full rounded-full'></Animated.View>
+                <Animated.View style={animatedIconStyle}>
+                    {
+                        // @ts-ignore
+                        icon[routeName]({
+                            color: isFocused ? "white" : "#9CA3AF"
+                        })
+                    }
+                </Animated.View>
+
+                {/* Animated Background */}
+                <Animated.View
+                    style={[animatedBackgroundStyle, styles.backgroundCircle]}
+                />
+
+                {/* Active indicator dot */}
+                {isFocused && (
+                    <Animated.View
+                        style={[
+                            styles.activeDot,
+                            {
+                                opacity: backgroundColor.value,
+                            }
+                        ]}
+                    />
+                )}
             </View>
         </PlatformPressable>
-  )
-}
+    );
+};
 
 export default TabBarButton;
 
 const styles = StyleSheet.create({
     tabBarItem: {
-        gap: 5,
-        position: "relative",
-        borderRadius: 9999
+        borderRadius: CONTAINER_WIDTH / 2,
+        overflow: 'hidden',
     },
     innerTabBarItem: {
         width: CONTAINER_WIDTH,
         height: CONTAINER_WIDTH,
-        borderRadius: 9999,
-        display: "flex",
+        borderRadius: CONTAINER_WIDTH / 2,
         justifyContent: "center",
         alignItems: "center",
         position: "relative",
         overflow: "hidden"
+    },
+    backgroundCircle: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        borderRadius: CONTAINER_WIDTH / 2,
+        zIndex: -1,
+    },
+    activeDot: {
+        position: 'absolute',
+        bottom: -2,
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: 'white',
+        zIndex: 2,
     }
-})
+});

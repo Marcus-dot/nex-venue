@@ -42,7 +42,6 @@ const EventScreen = () => {
   const [showAgendaForm, setShowAgendaForm] = useState(false);
   const [editingAgendaItem, setEditingAgendaItem] = useState<AgendaItem | null>(null);
   const [currentAgendaItem, setCurrentAgendaItem] = useState<string | undefined>();
-  const [nextAgendaOrder, setNextAgendaOrder] = useState(1);
 
   const MAX_IMAGE_RETRY = 2;
 
@@ -761,13 +760,12 @@ const EventScreen = () => {
           </View>
         )}
 
-        {/* Agenda Form Modal */}
+        {/* Agenda Form Modal - No longer needs nextOrder */}
         <AgendaFormModal
           visible={showAgendaForm}
           onClose={handleCloseAgendaForm}
           eventId={eventId!}
           editingItem={editingAgendaItem}
-          nextOrder={nextAgendaOrder}
         />
       </SafeAreaView>
     </View>

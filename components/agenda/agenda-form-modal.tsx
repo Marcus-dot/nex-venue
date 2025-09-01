@@ -12,15 +12,14 @@ interface AgendaFormModalProps {
     onClose: () => void;
     eventId: string;
     editingItem?: AgendaItem | null;
-    nextOrder: number;
+    // Removed nextOrder - no longer needed since we auto-sort by time
 }
 
 const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
     visible,
     onClose,
     eventId,
-    editingItem,
-    nextOrder
+    editingItem
 }) => {
     const { user } = useAuth();
 
@@ -105,7 +104,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                 location: location.trim() || undefined,
                 category,
                 isBreak,
-                order: editingItem?.order || nextOrder,
+                // Order will be auto-calculated in the service
+                order: editingItem?.order || 1, // Placeholder - will be calculated correctly
                 createdBy: editingItem?.createdBy || user.uid,
                 lastEditedBy: user.uid,
             };
@@ -115,7 +115,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                 Alert.alert('Success', 'Agenda item updated successfully');
             } else {
                 await agendaService.createAgendaItem(eventId, itemData, user.uid);
-                Alert.alert('Success', 'Agenda item created successfully');
+                Alert.alert('Success', 'Agenda item created and positioned chronologically');
             }
 
             onClose();
@@ -181,7 +181,25 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             />
                         </View>
 
-                        {/* Time Fields */}
+                        {/* Date - Updated with better placeholder */}
+                        <View className="mb-4">
+                            <Text style={{ fontSize: TEXT_SIZE * 0.8 }} className="text-white font-rubik-medium mb-2">
+                                Date *
+                            </Text>
+                            <TextInput
+                                value={date}
+                                onChangeText={setDate}
+                                placeholder="e.g., 2025-10-02 or Oct 2, 2025"
+                                placeholderTextColor="#9CA3AF"
+                                className="bg-gray-800 text-white p-3 rounded-lg font-rubik"
+                                style={{ fontSize: TEXT_SIZE }}
+                            />
+                            <Text className="text-gray-400 font-rubik text-xs mt-1">
+                                Supports: 2025-10-02, Oct 2 2025, October 2 2025
+                            </Text>
+                        </View>
+
+                        {/* Time Fields - Updated with better placeholders */}
                         <View className="flex-row gap-4 mb-4">
                             <View className="flex-1">
                                 <Text style={{ fontSize: TEXT_SIZE * 0.8 }} className="text-white font-rubik-medium mb-2">
@@ -190,7 +208,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 <TextInput
                                     value={startTime}
                                     onChangeText={setStartTime}
-                                    placeholder="09:00"
+                                    placeholder="e.g., 09:00 or 9:00 AM"
                                     placeholderTextColor="#9CA3AF"
                                     className="bg-gray-800 text-white p-3 rounded-lg font-rubik"
                                     style={{ fontSize: TEXT_SIZE }}
@@ -203,7 +221,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 <TextInput
                                     value={endTime}
                                     onChangeText={setEndTime}
-                                    placeholder="10:00"
+                                    placeholder="e.g., 10:00 or 10:00 AM"
                                     placeholderTextColor="#9CA3AF"
                                     className="bg-gray-800 text-white p-3 rounded-lg font-rubik"
                                     style={{ fontSize: TEXT_SIZE }}
@@ -211,19 +229,11 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             </View>
                         </View>
 
-                        {/* Date */}
-                        <View className="mb-4">
-                            <Text style={{ fontSize: TEXT_SIZE * 0.8 }} className="text-white font-rubik-medium mb-2">
-                                Date *
+                        {/* Helper text for time formats */}
+                        <View className="mb-4 bg-blue-900/20 border border-blue-600 p-3 rounded-lg">
+                            <Text className="text-blue-400 font-rubik text-xs">
+                                ℹ️ Time formats supported: 24-hour (14:30) or 12-hour (2:30 PM)
                             </Text>
-                            <TextInput
-                                value={date}
-                                onChangeText={setDate}
-                                placeholder="2025-10-02"
-                                placeholderTextColor="#9CA3AF"
-                                className="bg-gray-800 text-white p-3 rounded-lg font-rubik"
-                                style={{ fontSize: TEXT_SIZE }}
-                            />
                         </View>
 
                         {/* Speaker */}
@@ -267,8 +277,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                         key={cat.value}
                                         onPress={() => setCategory(cat.value)}
                                         className={`px-3 py-2 rounded-lg border ${category === cat.value
-                                                ? 'bg-accent border-accent'
-                                                : 'bg-gray-800 border-gray-600'
+                                            ? 'bg-accent border-accent'
+                                            : 'bg-gray-800 border-gray-600'
                                             }`}
                                     >
                                         <Text
@@ -288,8 +298,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             <TouchableOpacity
                                 onPress={() => setIsBreak(!isBreak)}
                                 className={`p-3 rounded-lg border flex-row justify-between items-center ${isBreak
-                                        ? 'bg-accent border-accent'
-                                        : 'bg-gray-800 border-gray-600'
+                                    ? 'bg-accent border-accent'
+                                    : 'bg-gray-800 border-gray-600'
                                     }`}
                             >
                                 <Text className={`font-rubik ${isBreak ? 'text-white' : 'text-gray-300'}`}>
@@ -309,6 +319,13 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             showArrow={false}
                             width="100%"
                         />
+
+                        {/* Info about automatic positioning */}
+                        <View className="mt-4 bg-green-900/20 border border-green-600 p-3 rounded-lg">
+                            <Text className="text-green-400 font-rubik text-xs">
+                                ✨ Items are automatically positioned based on date and time
+                            </Text>
+                        </View>
                     </ScrollView>
                 </SafeAreaView>
             </KeyboardAvoidingView>

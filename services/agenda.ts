@@ -1,39 +1,108 @@
 import { AgendaItem } from '@/types/agenda';
 import firestore from '@react-native-firebase/firestore';
 
+// Helper function to convert date + time to sortable timestamp
+const parseDateTime = (date: string, time: string): number => {
+    try {
+        // Parse the date (expecting formats like "2025-10-02" or "Oct 2, 2025")
+        let parsedDate: Date;
+
+        if (date.includes('-')) {
+            // ISO format: "2025-10-02"
+            parsedDate = new Date(date);
+        } else {
+            // Text format: "Oct 2, 2025" or "October 2, 2025"
+            parsedDate = new Date(date);
+        }
+
+        // Parse time (expecting formats like "09:30", "9:30 AM", "14:30")
+        const timeStr = time.toLowerCase().replace(/\s+/g, '');
+        let hours = 0;
+        let minutes = 0;
+
+        if (timeStr.includes('am') || timeStr.includes('pm')) {
+            // 12-hour format
+            const isPM = timeStr.includes('pm');
+            const cleanTime = timeStr.replace(/[ap]m/g, '');
+            const [hourStr, minuteStr] = cleanTime.split(':');
+            hours = parseInt(hourStr);
+            minutes = parseInt(minuteStr) || 0;
+
+            if (isPM && hours !== 12) hours += 12;
+            if (!isPM && hours === 12) hours = 0;
+        } else {
+            // 24-hour format
+            const [hourStr, minuteStr] = time.split(':');
+            hours = parseInt(hourStr);
+            minutes = parseInt(minuteStr) || 0;
+        }
+
+        // Set the time on the date
+        parsedDate.setHours(hours, minutes, 0, 0);
+
+        return parsedDate.getTime();
+    } catch (error) {
+        console.warn('Error parsing date/time:', { date, time, error });
+        // Fallback: return current time
+        return Date.now();
+    }
+};
+
+// Helper function to sort agenda items by date and time
+const sortAgendaItems = (items: AgendaItem[]): AgendaItem[] => {
+    return items.sort((a, b) => {
+        const timestampA = parseDateTime(a.date, a.startTime);
+        const timestampB = parseDateTime(b.date, b.startTime);
+
+        // Primary sort: by date/time
+        if (timestampA !== timestampB) {
+            return timestampA - timestampB;
+        }
+
+        // Secondary sort: by creation time (for items at same time)
+        return a.createdAt - b.createdAt;
+    });
+};
+
 export const agendaService = {
-    // Get agenda items for an event
+    // Get agenda items for an event - now sorted by date/time
     getEventAgenda: async (eventId: string): Promise<AgendaItem[]> => {
         try {
             const snapshot = await firestore()
                 .collection('agendas')
                 .where('eventId', '==', eventId)
-                .orderBy('order', 'asc')
+                // Remove orderBy - we'll sort in memory by date/time
                 .get();
 
-            return snapshot.docs.map(doc => ({
+            const items = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             })) as AgendaItem[];
+
+            // Sort by date and time
+            return sortAgendaItems(items);
         } catch (error) {
             console.error('Error fetching agenda:', error);
             throw error;
         }
     },
 
-    // Listen to real-time agenda updates
+    // Listen to real-time agenda updates - now sorted by date/time
     subscribeToAgenda: (eventId: string, callback: (items: AgendaItem[]) => void) => {
         return firestore()
             .collection('agendas')
             .where('eventId', '==', eventId)
-            .orderBy('order', 'asc')
+            // Remove orderBy - we'll sort in memory
             .onSnapshot(
                 (snapshot) => {
                     const items = snapshot.docs.map(doc => ({
                         id: doc.id,
                         ...doc.data()
                     })) as AgendaItem[];
-                    callback(items);
+
+                    // Sort by date and time before calling callback
+                    const sortedItems = sortAgendaItems(items);
+                    callback(sortedItems);
                 },
                 (error) => {
                     console.error('Error listening to agenda updates:', error);
@@ -41,12 +110,27 @@ export const agendaService = {
             );
     },
 
-    // Create new agenda item (Admin only)
+    // Create new agenda item (Admin only) - auto-position by time
     createAgendaItem: async (eventId: string, item: Omit<AgendaItem, 'id' | 'eventId' | 'createdAt' | 'updatedAt'>, userId: string): Promise<string> => {
         try {
+            // Calculate auto-order based on date/time for backward compatibility
+            // (Some existing code might still reference order field)
+            const existingItems = await agendaService.getEventAgenda(eventId);
+            const newTimestamp = parseDateTime(item.date, item.startTime);
+
+            // Find position where this item should be inserted
+            let autoOrder = 1;
+            for (const existingItem of existingItems) {
+                const existingTimestamp = parseDateTime(existingItem.date, existingItem.startTime);
+                if (newTimestamp > existingTimestamp) {
+                    autoOrder = Math.max(autoOrder, (existingItem.order || 0) + 1);
+                }
+            }
+
             const newItem: Omit<AgendaItem, 'id'> = {
                 ...item,
                 eventId,
+                order: autoOrder, // Keep for backward compatibility but not used for sorting
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 createdBy: userId,
@@ -94,8 +178,9 @@ export const agendaService = {
         }
     },
 
-    // Reorder agenda items (Admin only)
+    // Reorder agenda items (Admin only) - DEPRECATED but kept for compatibility
     reorderAgendaItems: async (items: { id: string; order: number }[], userId: string): Promise<void> => {
+        console.warn('reorderAgendaItems is deprecated - items are now auto-sorted by date/time');
         try {
             const batch = firestore().batch();
 

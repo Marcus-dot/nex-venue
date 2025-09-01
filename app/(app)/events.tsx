@@ -12,7 +12,7 @@ const Events = () => {
   const { toggle } = useLocalSearchParams();
   let initialToggle: string | null = Array.isArray(toggle) ? toggle[0] : toggle;
 
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isAdmin } = useAuth(); // Added isAdmin here
   const [createdEvents, setCreatedEvents] = useState<Event[]>([]);
   const [attendingEvents, setAttendingEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,11 +33,12 @@ const Events = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (initialToggle === "create-event") {
+      // Only allow admins to trigger create event modal
+      if (initialToggle === "create-event" && isAdmin) {
         setShowCreateModal(true);
         router.setParams({ toggle: undefined });
       }
-    }, [initialToggle])
+    }, [initialToggle, isAdmin])
   );
 
   const fetchEvents = async () => {
@@ -113,7 +114,10 @@ const Events = () => {
   };
 
   const createEvent = async () => {
-    if (!user || !userProfile) return;
+    if (!user || !userProfile || !isAdmin) {
+      Alert.alert('Permission Denied', 'Only administrators can create events.');
+      return;
+    }
 
     if (!validateForm()) {
       Alert.alert('Incomplete Form', 'Please fill in all required fields.');
@@ -281,23 +285,49 @@ const Events = () => {
     if (tab === 'created') {
       return (
         <View className="flex-1 justify-center items-center px-8 py-16">
-          <Text className="text-6xl mb-6">🚀</Text>
-          <Text className="text-white font-rubik-bold text-2xl mb-4 text-center">
-            No Events Created Yet
-          </Text>
-          <Text className="text-gray-400 font-rubik text-base text-center mb-8 leading-6">
-            Ready to bring people together? Create your first event and start building an amazing community experience.
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowCreateModal(true)}
-            className="bg-accent px-8 py-4 rounded-xl flex-row items-center"
-            activeOpacity={0.8}
-          >
-            <Feather name="plus" size={18} color="white" />
-            <Text className="text-white font-rubik-semibold ml-2 text-base">
-              Create Your First Event
-            </Text>
-          </TouchableOpacity>
+          {isAdmin ? (
+            // Admin version - with create event option
+            <>
+              <Text className="text-6xl mb-6">🚀</Text>
+              <Text className="text-white font-rubik-bold text-2xl mb-4 text-center">
+                No Events Created Yet
+              </Text>
+              <Text className="text-gray-400 font-rubik text-base text-center mb-8 leading-6">
+                Ready to bring people together? Create your first event and start building an amazing community experience.
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowCreateModal(true)}
+                className="bg-accent px-8 py-4 rounded-xl flex-row items-center"
+                activeOpacity={0.8}
+              >
+                <Feather name="plus" size={18} color="white" />
+                <Text className="text-white font-rubik-semibold ml-2 text-base">
+                  Create Your First Event
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            // Regular user version - no create option
+            <>
+              <Text className="text-6xl mb-6">👤</Text>
+              <Text className="text-white font-rubik-bold text-2xl mb-4 text-center">
+                You Haven't Created Any Events
+              </Text>
+              <Text className="text-gray-400 font-rubik text-base text-center mb-8 leading-6">
+                Only administrators can create events. Check out the discover tab to find events to attend!
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/(app)/discover')}
+                className="bg-accent px-8 py-4 rounded-xl flex-row items-center"
+                activeOpacity={0.8}
+              >
+                <Feather name="compass" size={18} color="white" />
+                <Text className="text-white font-rubik-semibold ml-2 text-base">
+                  Discover Events
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       );
     }
@@ -352,10 +382,24 @@ const Events = () => {
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="#9CA3AF"
-        className={`bg-gray-800 text-white p-4 rounded-xl font-rubik border ${error ? 'border-red-500' : 'border-gray-700'
-          } ${multiline ? 'h-24' : 'h-12'}`}
+        style={{
+          fontSize: 16,
+          height: multiline ? 80 : 50,
+          textAlignVertical: multiline ? 'top' : 'center',
+          fontFamily: 'Rubik-Regular'
+        }}
+        className={`bg-gray-800 text-white px-4 py-3 rounded-lg border ${error ? 'border-red-500' : 'border-gray-700'
+          }`}
         multiline={multiline}
-        textAlignVertical={multiline ? "top" : "center"}
+        numberOfLines={multiline ? 4 : 1}
+        autoCorrect={true}
+        autoCapitalize="sentences"
+        returnKeyType={multiline ? "default" : "next"}
+        blurOnSubmit={false}
+        keyboardType="default"
+        clearButtonMode="while-editing"
+        selectTextOnFocus={false}
+        contextMenuHidden={false}
       />
       {error && (
         <View className="flex-row items-center mt-2">
@@ -404,14 +448,17 @@ const Events = () => {
         <View className="px-6 pt-4">
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-white font-rubik-bold text-2xl">Your Events</Text>
-            <TouchableOpacity
-              onPress={() => setShowCreateModal(true)}
-              className="bg-accent px-4 py-2 rounded-lg flex-row items-center"
-              activeOpacity={0.8}
-            >
-              <Feather name="plus" size={16} color="white" />
-              <Text className="text-white font-rubik-medium ml-1">Create Event</Text>
-            </TouchableOpacity>
+            {/* Only show Create Event button for admins */}
+            {isAdmin && (
+              <TouchableOpacity
+                onPress={() => setShowCreateModal(true)}
+                className="bg-accent px-4 py-2 rounded-lg flex-row items-center"
+                activeOpacity={0.8}
+              >
+                <Feather name="plus" size={16} color="white" />
+                <Text className="text-white font-rubik-medium ml-1">Create Event</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Tab Selector */}
@@ -455,129 +502,134 @@ const Events = () => {
         </View>
       </ScrollView>
 
-      {/* Create Event Modal */}
-      <Modal
-        visible={showCreateModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreateModal(false)}
-      >
-        <KeyboardAvoidingView
-          className="flex-1 bg-background"
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      {/* Create Event Modal - Only accessible by admins */}
+      {isAdmin && (
+        <Modal
+          visible={showCreateModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowCreateModal(false)}
         >
-          <SafeAreaView className="flex-1" edges={['top']}>
-            {/* Modal Header */}
-            <View className="flex-row justify-between items-center p-6 border-b border-gray-700">
-              <Text className="text-white font-rubik-bold text-xl">Create New Event</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowCreateModal(false);
-                  resetForm();
-                }}
-                activeOpacity={0.7}
-              >
-                <Feather name="x" size={24} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              className="flex-1 px-6"
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View className="py-4">
-                <FormInput
-                  label="Event Title"
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder="Enter a compelling event title"
-                  error={formErrors.title}
-                  required
-                />
-
-                <FormInput
-                  label="Description"
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Describe what makes this event special"
-                  multiline
-                  error={formErrors.description}
-                  required
-                />
-
-                <View className="flex-row space-x-4 mb-4">
-                  <View className="flex-1">
-                    <FormInput
-                      label="Date"
-                      value={date}
-                      onChangeText={setDate}
-                      placeholder="e.g., Jan 25, 2024"
-                      error={formErrors.date}
-                      required
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <FormInput
-                      label="Time"
-                      value={time}
-                      onChangeText={setTime}
-                      placeholder="e.g., 7:00 PM"
-                      error={formErrors.time}
-                      required
-                    />
-                  </View>
-                </View>
-
-                <FormInput
-                  label="Location"
-                  value={location}
-                  onChangeText={setLocation}
-                  placeholder="Where will this event take place?"
-                  error={formErrors.location}
-                  required
-                />
-
-                <FormInput
-                  label="Event Image URL"
-                  value={imageUrl}
-                  onChangeText={setImageUrl}
-                  placeholder="https://... (optional)"
-                />
-
-                {imageUrl.trim() && (
-                  <FormInput
-                    label="Image Description"
-                    value={imageDescription}
-                    onChangeText={setImageDescription}
-                    placeholder="Describe the image for accessibility"
-                  />
-                )}
-
-                {/* Create Button */}
+          <KeyboardAvoidingView
+            className="flex-1 bg-background"
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          >
+            <SafeAreaView className="flex-1" edges={['top']}>
+              {/* Modal Header */}
+              <View className="flex-row justify-between items-center p-6 border-b border-gray-700">
+                <Text className="text-white font-rubik-bold text-xl">Create New Event</Text>
                 <TouchableOpacity
-                  onPress={createEvent}
-                  disabled={creating}
-                  className={`py-4 rounded-xl mt-6 mb-8 flex-row items-center justify-center ${creating ? 'bg-gray-600' : 'bg-accent'
-                    }`}
-                  activeOpacity={0.8}
+                  onPress={() => {
+                    setShowCreateModal(false);
+                    resetForm();
+                  }}
+                  activeOpacity={0.7}
                 >
-                  {creating ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <>
-                      <Feather name="plus" size={18} color="white" />
-                      <Text className="text-white font-rubik-semibold text-base ml-2">
-                        Create Event
-                      </Text>
-                    </>
-                  )}
+                  <Feather name="x" size={24} color="#9CA3AF" />
                 </TouchableOpacity>
               </View>
-            </ScrollView>
-          </SafeAreaView>
-        </KeyboardAvoidingView>
-      </Modal>
+
+              <ScrollView
+                className="flex-1 px-6"
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="none"
+                scrollEventThrottle={16}
+              >
+                <View className="py-4">
+                  <FormInput
+                    label="Event Title"
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder="Enter a compelling event title"
+                    error={formErrors.title}
+                    required
+                  />
+
+                  <FormInput
+                    label="Description"
+                    value={description}
+                    onChangeText={setDescription}
+                    placeholder="Describe what makes this event special"
+                    multiline
+                    error={formErrors.description}
+                    required
+                  />
+
+                  <View className="flex-row space-x-4 mb-4">
+                    <View className="flex-1">
+                      <FormInput
+                        label="Date"
+                        value={date}
+                        onChangeText={setDate}
+                        placeholder="e.g., Jan 25, 2024"
+                        error={formErrors.date}
+                        required
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <FormInput
+                        label="Time"
+                        value={time}
+                        onChangeText={setTime}
+                        placeholder="e.g., 7:00 PM"
+                        error={formErrors.time}
+                        required
+                      />
+                    </View>
+                  </View>
+
+                  <FormInput
+                    label="Location"
+                    value={location}
+                    onChangeText={setLocation}
+                    placeholder="Where will this event take place?"
+                    error={formErrors.location}
+                    required
+                  />
+
+                  <FormInput
+                    label="Event Image URL"
+                    value={imageUrl}
+                    onChangeText={setImageUrl}
+                    placeholder="https://... (optional)"
+                  />
+
+                  {imageUrl.trim() && (
+                    <FormInput
+                      label="Image Description"
+                      value={imageDescription}
+                      onChangeText={setImageDescription}
+                      placeholder="Describe the image for accessibility"
+                    />
+                  )}
+
+                  {/* Create Button */}
+                  <TouchableOpacity
+                    onPress={createEvent}
+                    disabled={creating}
+                    className={`py-4 rounded-xl mt-6 mb-8 flex-row items-center justify-center ${creating ? 'bg-gray-600' : 'bg-accent'
+                      }`}
+                    activeOpacity={0.8}
+                  >
+                    {creating ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <>
+                        <Feather name="plus" size={18} color="white" />
+                        <Text className="text-white font-rubik-semibold text-base ml-2">
+                          Create Event
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </SafeAreaView>
+          </KeyboardAvoidingView>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };

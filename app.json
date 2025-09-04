@@ -9,6 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "buildNumber": "1",
       "supportsTablet": true,
       "googleServicesFile": "./GoogleService-info.plist",
       "bundleIdentifier": "com.gralix.nexvenue",
@@ -17,6 +18,7 @@
       }
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -49,7 +51,7 @@
         }
       ],
       [
-        "expo-build-properties", 
+        "expo-build-properties",
         {
           "android": {
             "compileSdkVersion": 35,

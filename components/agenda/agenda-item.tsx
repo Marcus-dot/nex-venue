@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { AgendaItem as AgendaItemType } from '@/types/agenda';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -19,6 +20,22 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     onSetCurrent
 }) => {
     const { isAdmin } = useAuth();
+    const { activeTheme } = useTheme();
+
+    // Theme-aware colors
+    const themeColors = {
+        background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+        surface: activeTheme === 'light' ? '#ffffff' : '#374151',
+        surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
+        text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+        textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
+        textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
+        border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+        breakBackground: activeTheme === 'light' ? '#f9fafb' : '#374151',
+        breakBorder: activeTheme === 'light' ? '#e5e7eb' : '#4b5563',
+        currentBackground: activeTheme === 'light' ? 'rgba(255, 67, 6, 0.1)' : 'rgba(255, 67, 6, 0.2)',
+        currentBorder: activeTheme === 'light' ? 'rgba(255, 67, 6, 0.3)' : '#ff4306'
+    };
 
     const getCategoryColor = (category?: string) => {
         switch (category) {
@@ -41,13 +58,35 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         return `${displayHour}:${minutes} ${ampm}`;
     };
 
+    const getItemStyles = () => {
+        if (isCurrentItem) {
+            return {
+                backgroundColor: themeColors.currentBackground,
+                borderColor: themeColors.currentBorder,
+                borderWidth: 2
+            };
+        }
+
+        if (item.isBreak) {
+            return {
+                backgroundColor: themeColors.breakBackground,
+                borderColor: themeColors.breakBorder,
+                borderWidth: 1
+            };
+        }
+
+        return {
+            backgroundColor: themeColors.surface,
+            borderColor: themeColors.border,
+            borderWidth: 1
+        };
+    };
+
     return (
-        <View className={`p-4 rounded-xl mb-3 border-2 ${isCurrentItem
-                ? 'bg-accent/20 border-accent'
-                : item.isBreak
-                    ? 'bg-gray-800/50 border-gray-700'
-                    : 'bg-gray-800 border-gray-700'
-            }`}>
+        <View
+            className="p-4 rounded-xl mb-3"
+            style={getItemStyles()}
+        >
             {/* Header */}
             <View className="flex-row justify-between items-start mb-2">
                 <View className="flex-1">
@@ -65,7 +104,10 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                             </View>
                         )}
                     </View>
-                    <Text className="text-white font-rubik-semibold text-lg">
+                    <Text
+                        className="font-rubik-semibold text-lg"
+                        style={{ color: themeColors.text }}
+                    >
                         {item.title}
                     </Text>
                 </View>
@@ -107,7 +149,10 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                     {formatTime(item.startTime)} - {formatTime(item.endTime)}
                 </Text>
                 {item.location && (
-                    <Text className="text-gray-400 font-rubik text-sm">
+                    <Text
+                        className="font-rubik text-sm"
+                        style={{ color: themeColors.textSecondary }}
+                    >
                         📍 {item.location}
                     </Text>
                 )}
@@ -115,14 +160,20 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
 
             {/* Description */}
             {item.description && (
-                <Text className="text-gray-300 font-rubik text-sm mb-2">
+                <Text
+                    className="font-rubik text-sm mb-2"
+                    style={{ color: themeColors.textSecondary }}
+                >
                     {item.description}
                 </Text>
             )}
 
             {/* Speaker */}
             {item.speaker && (
-                <Text className="text-gray-400 font-rubik text-sm">
+                <Text
+                    className="font-rubik text-sm"
+                    style={{ color: themeColors.textSecondary }}
+                >
                     🎤 {item.speaker}
                 </Text>
             )}
@@ -130,7 +181,12 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
             {/* Break indicator */}
             {item.isBreak && (
                 <View className="mt-2 flex-row items-center">
-                    <Text className="text-gray-500 font-rubik text-sm">☕ Break Time</Text>
+                    <Text
+                        className="font-rubik text-sm"
+                        style={{ color: themeColors.textTertiary }}
+                    >
+                        ☕ Break Time
+                    </Text>
                 </View>
             )}
         </View>

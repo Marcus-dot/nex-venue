@@ -2,6 +2,7 @@
 import AgendaFormModal from '@/components/agenda/agenda-form-modal';
 import AgendaList from '@/components/agenda/agenda-list';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { chatService } from '@/services/chat';
 import type { AgendaItem } from '@/types/agenda';
 import type { UserProfile } from '@/types/auth';
@@ -26,6 +27,7 @@ const EventScreen = () => {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
   const router = useRouter();
   const { user, isAdmin, userProfile } = useAuth();
+  const { activeTheme } = useTheme();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [attendees, setAttendees] = useState<AttendeeInfo[]>([]);
@@ -44,6 +46,23 @@ const EventScreen = () => {
   const [currentAgendaItem, setCurrentAgendaItem] = useState<string | undefined>();
 
   const MAX_IMAGE_RETRY = 2;
+
+  // Theme-aware colors
+  const themeColors = {
+    background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+    surface: activeTheme === 'light' ? '#ffffff' : '#374151',
+    surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
+    text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+    textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
+    textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
+    border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    skeletonBg: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    tabBackground: activeTheme === 'light' ? '#f3f4f6' : '#374151',
+    tabBorder: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    imageBackground: activeTheme === 'light' ? '#f3f4f6' : '#374151',
+    attendeeCardBg: activeTheme === 'light' ? '#f9fafb' : '#374151',
+    locationColor: activeTheme === 'light' ? '#6b7280' : '#9CA3AF'
+  };
 
   const fetchEventDetails = async () => {
     if (!eventId || !user) return;
@@ -268,7 +287,10 @@ const EventScreen = () => {
     if (!event.imageUrl) return null;
 
     return (
-      <View className="mb-6 rounded-xl overflow-hidden bg-gray-800">
+      <View
+        className="mb-6 rounded-xl overflow-hidden"
+        style={{ backgroundColor: themeColors.imageBackground }}
+      >
         <View style={{ height: SCREEN_WIDTH * 0.6, position: 'relative' }}>
           {/* Main Image */}
           <Image
@@ -291,17 +313,31 @@ const EventScreen = () => {
 
           {/* Loading Overlay */}
           {imageLoading && (
-            <View className="absolute inset-0 bg-gray-800 items-center justify-center">
+            <View
+              className="absolute inset-0 items-center justify-center"
+              style={{ backgroundColor: themeColors.imageBackground }}
+            >
               <ActivityIndicator size="large" color="#ff4306" />
-              <Text className="text-gray-400 font-rubik text-sm mt-2">Loading image...</Text>
+              <Text
+                className="font-rubik text-sm mt-2"
+                style={{ color: themeColors.textSecondary }}
+              >
+                Loading image...
+              </Text>
             </View>
           )}
 
           {/* Error Overlay */}
           {imageError && !imageLoading && (
-            <View className="absolute inset-0 bg-gray-800 items-center justify-center p-6">
-              <Feather name="image" size={48} color="#9CA3AF" />
-              <Text className="text-gray-400 font-rubik text-base mt-4 text-center">
+            <View
+              className="absolute inset-0 items-center justify-center p-6"
+              style={{ backgroundColor: themeColors.imageBackground }}
+            >
+              <Feather name="image" size={48} color={themeColors.textTertiary} />
+              <Text
+                className="font-rubik text-base mt-4 text-center"
+                style={{ color: themeColors.textSecondary }}
+              >
                 Unable to load event image
               </Text>
               {imageRetryCount < MAX_IMAGE_RETRY && (
@@ -314,7 +350,10 @@ const EventScreen = () => {
                 </TouchableOpacity>
               )}
               {imageRetryCount >= MAX_IMAGE_RETRY && (
-                <Text className="text-gray-500 font-rubik text-xs mt-2 text-center">
+                <Text
+                  className="font-rubik text-xs mt-2 text-center"
+                  style={{ color: themeColors.textTertiary }}
+                >
                   Maximum retry attempts reached
                 </Text>
               )}
@@ -346,7 +385,10 @@ const EventScreen = () => {
 
         {/* Image Actions */}
         {!imageLoading && !imageError && (
-          <View className="p-3 bg-gray-800 flex-row justify-between items-center">
+          <View
+            className="p-3 flex-row justify-between items-center"
+            style={{ backgroundColor: themeColors.surface }}
+          >
             <TouchableOpacity
               className="flex-row items-center"
               onPress={() => {
@@ -357,8 +399,13 @@ const EventScreen = () => {
                 );
               }}
             >
-              <Feather name="info" size={16} color="#9CA3AF" />
-              <Text className="text-gray-400 font-rubik text-sm ml-2">Image Info</Text>
+              <Feather name="info" size={16} color={themeColors.textTertiary} />
+              <Text
+                className="font-rubik text-sm ml-2"
+                style={{ color: themeColors.textSecondary }}
+              >
+                Image Info
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -368,8 +415,13 @@ const EventScreen = () => {
                 Alert.alert('Coming Soon', 'Image viewing features will be available in the next update.');
               }}
             >
-              <Feather name="maximize-2" size={16} color="#9CA3AF" />
-              <Text className="text-gray-400 font-rubik text-sm ml-2">View Full</Text>
+              <Feather name="maximize-2" size={16} color={themeColors.textTertiary} />
+              <Text
+                className="font-rubik text-sm ml-2"
+                style={{ color: themeColors.textSecondary }}
+              >
+                View Full
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -437,17 +489,26 @@ const EventScreen = () => {
     };
 
     return (
-      <View className="bg-gray-800 p-3 rounded-lg flex-row items-center mb-2">
+      <View
+        className="p-3 rounded-lg flex-row items-center mb-2"
+        style={{ backgroundColor: themeColors.attendeeCardBg }}
+      >
         <View className="w-10 h-10 bg-accent rounded-full items-center justify-center mr-3">
           <Text className="text-white font-rubik-semibold text-sm">
             {attendee.phoneNumber.slice(attendee.phoneNumber.length - 1)}
           </Text>
         </View>
         <View className="flex-1">
-          <Text className="text-white font-rubik-medium">
+          <Text
+            className="font-rubik-medium"
+            style={{ color: themeColors.text }}
+          >
             {attendee.uid === user?.uid ? 'You' : attendee.fullName}
           </Text>
-          <Text className="text-gray-400 font-rubik text-sm">
+          <Text
+            className="font-rubik text-sm"
+            style={{ color: themeColors.textSecondary }}
+          >
             {attendee.uid === user?.uid ? 'You' : 'Attendee'}
           </Text>
         </View>
@@ -467,19 +528,38 @@ const EventScreen = () => {
 
   if (loading) {
     return (
-      <View className="bg-background flex-1 items-center justify-center">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: themeColors.background }}
+      >
         <ActivityIndicator size="large" color="#ff4306" />
-        <Text className="text-white font-rubik mt-4">Loading event...</Text>
+        <Text
+          className="font-rubik mt-4"
+          style={{ color: themeColors.text }}
+        >
+          Loading event...
+        </Text>
       </View>
     );
   }
 
   if (!event) {
     return (
-      <View className="bg-background flex-1 items-center justify-center">
-        <Feather name="alert-circle" size={48} color="#9CA3AF" />
-        <Text className="text-white font-rubik text-xl mt-4 mb-2">Event not found</Text>
-        <Text className="text-gray-400 font-rubik text-center mb-6 px-8">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: themeColors.background }}
+      >
+        <Feather name="alert-circle" size={48} color={themeColors.textTertiary} />
+        <Text
+          className="font-rubik text-xl mt-4 mb-2"
+          style={{ color: themeColors.text }}
+        >
+          Event not found
+        </Text>
+        <Text
+          className="font-rubik text-center mb-6 px-8"
+          style={{ color: themeColors.textSecondary }}
+        >
           This event may have been removed or you don't have access to it.
         </Text>
         <TouchableOpacity onPress={() => router.back()} className="bg-accent px-6 py-3 rounded-xl">
@@ -493,14 +573,22 @@ const EventScreen = () => {
   const canAccessChat = isAttending || isCreator;
 
   return (
-    <View className="bg-background flex-1">
+    <View className="flex-1" style={{ backgroundColor: themeColors.background }}>
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-gray-700">
+        <View
+          className="flex-row items-center justify-between p-4 border-b"
+          style={{ borderBottomColor: themeColors.border }}
+        >
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <Feather name="arrow-left" size={24} color="white" />
+            <Feather name="arrow-left" size={24} color={themeColors.text} />
           </TouchableOpacity>
-          <Text className="text-white font-rubik-bold text-xl flex-1">Event Details</Text>
+          <Text
+            className="font-rubik-bold text-xl flex-1"
+            style={{ color: themeColors.text }}
+          >
+            Event Details
+          </Text>
           {isAdmin && activeTab === 'agenda' && (
             <TouchableOpacity
               onPress={() => setShowAgendaForm(true)}
@@ -520,12 +608,24 @@ const EventScreen = () => {
         </View>
 
         {/* Tab Navigation */}
-        <View className="flex-row bg-gray-800 mx-4 rounded-lg p-1 mb-4 border border-gray-700">
+        <View
+          className="flex-row rounded-lg p-1 mb-4 mx-4 border"
+          style={{
+            backgroundColor: themeColors.tabBackground,
+            borderColor: themeColors.tabBorder
+          }}
+        >
           <TouchableOpacity
             onPress={() => setActiveTab('details')}
             className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'details' ? 'bg-accent' : ''}`}
           >
-            <Text className={`text-center font-rubik-medium text-sm ${activeTab === 'details' ? 'text-white' : 'text-gray-400'}`}>
+            <Text
+              className={`text-center font-rubik-medium text-sm ${activeTab === 'details' ? 'text-white' : ''
+                }`}
+              style={{
+                color: activeTab === 'details' ? 'white' : themeColors.textSecondary
+              }}
+            >
               Details
             </Text>
           </TouchableOpacity>
@@ -533,7 +633,13 @@ const EventScreen = () => {
             onPress={() => setActiveTab('agenda')}
             className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'agenda' ? 'bg-accent' : ''}`}
           >
-            <Text className={`text-center font-rubik-medium text-sm ${activeTab === 'agenda' ? 'text-white' : 'text-gray-400'}`}>
+            <Text
+              className={`text-center font-rubik-medium text-sm ${activeTab === 'agenda' ? 'text-white' : ''
+                }`}
+              style={{
+                color: activeTab === 'agenda' ? 'white' : themeColors.textSecondary
+              }}
+            >
               Agenda
             </Text>
           </TouchableOpacity>
@@ -541,7 +647,13 @@ const EventScreen = () => {
             onPress={() => setActiveTab('attendees')}
             className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'attendees' ? 'bg-accent' : ''}`}
           >
-            <Text className={`text-center font-rubik-medium text-sm ${activeTab === 'attendees' ? 'text-white' : 'text-gray-400'}`}>
+            <Text
+              className={`text-center font-rubik-medium text-sm ${activeTab === 'attendees' ? 'text-white' : ''
+                }`}
+              style={{
+                color: activeTab === 'attendees' ? 'white' : themeColors.textSecondary
+              }}
+            >
               Attendees
             </Text>
           </TouchableOpacity>
@@ -549,7 +661,13 @@ const EventScreen = () => {
             onPress={() => setActiveTab('chat')}
             className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'chat' ? 'bg-accent' : ''}`}
           >
-            <Text className={`text-center font-rubik-medium text-sm ${activeTab === 'chat' ? 'text-white' : 'text-gray-400'}`}>
+            <Text
+              className={`text-center font-rubik-medium text-sm ${activeTab === 'chat' ? 'text-white' : ''
+                }`}
+              style={{
+                color: activeTab === 'chat' ? 'white' : themeColors.textSecondary
+              }}
+            >
               Chat
             </Text>
           </TouchableOpacity>
@@ -566,11 +684,25 @@ const EventScreen = () => {
             <EventImage event={event} />
 
             {/* Event Info */}
-            <View className="bg-gray-800 p-4 rounded-xl mb-6 border border-gray-700">
+            <View
+              className="p-4 rounded-xl mb-6 border"
+              style={{
+                backgroundColor: themeColors.surface,
+                borderColor: themeColors.border
+              }}
+            >
               <View className="flex-row justify-between items-start mb-4">
                 <View className="flex-1">
-                  <Text className="text-white font-rubik-bold text-2xl mb-2 leading-8">{event.title}</Text>
-                  <Text className="text-gray-400 font-rubik">
+                  <Text
+                    className="font-rubik-bold text-2xl mb-2 leading-8"
+                    style={{ color: themeColors.text }}
+                  >
+                    {event.title}
+                  </Text>
+                  <Text
+                    className="font-rubik"
+                    style={{ color: themeColors.textSecondary }}
+                  >
                     Created by {isCreator ? 'You' : event.creatorName}
                   </Text>
                 </View>
@@ -581,7 +713,12 @@ const EventScreen = () => {
                 )}
               </View>
 
-              <Text className="text-gray-300 font-rubik text-base mb-6 leading-6">{event.description}</Text>
+              <Text
+                className="font-rubik text-base mb-6 leading-6"
+                style={{ color: themeColors.textSecondary }}
+              >
+                {event.description}
+              </Text>
 
               <View className="space-y-4">
                 <View className="flex-row items-center">
@@ -589,8 +726,18 @@ const EventScreen = () => {
                     <Feather name="calendar" size={18} color="#ff4306" />
                   </View>
                   <View>
-                    <Text className="text-white font-rubik-medium text-base">{event.date}</Text>
-                    <Text className="text-gray-400 font-rubik text-sm">Event Date</Text>
+                    <Text
+                      className="font-rubik-medium text-base"
+                      style={{ color: themeColors.text }}
+                    >
+                      {event.date}
+                    </Text>
+                    <Text
+                      className="font-rubik text-sm"
+                      style={{ color: themeColors.textSecondary }}
+                    >
+                      Event Date
+                    </Text>
                   </View>
                 </View>
 
@@ -599,8 +746,18 @@ const EventScreen = () => {
                     <Feather name="clock" size={18} color="#ff4306" />
                   </View>
                   <View>
-                    <Text className="text-white font-rubik-medium text-base">{event.time}</Text>
-                    <Text className="text-gray-400 font-rubik text-sm">Start Time</Text>
+                    <Text
+                      className="font-rubik-medium text-base"
+                      style={{ color: themeColors.text }}
+                    >
+                      {event.time}
+                    </Text>
+                    <Text
+                      className="font-rubik text-sm"
+                      style={{ color: themeColors.textSecondary }}
+                    >
+                      Start Time
+                    </Text>
                   </View>
                 </View>
 
@@ -609,8 +766,18 @@ const EventScreen = () => {
                     <Feather name="map-pin" size={18} color="#ff4306" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-white font-rubik-medium text-base">{event.location}</Text>
-                    <Text className="text-gray-400 font-rubik text-sm">Event Location</Text>
+                    <Text
+                      className="font-rubik-medium text-base"
+                      style={{ color: themeColors.text }}
+                    >
+                      {event.location}
+                    </Text>
+                    <Text
+                      className="font-rubik text-sm"
+                      style={{ color: themeColors.textSecondary }}
+                    >
+                      Event Location
+                    </Text>
                   </View>
                 </View>
 
@@ -619,10 +786,18 @@ const EventScreen = () => {
                     <Feather name="users" size={18} color="#ff4306" />
                   </View>
                   <View>
-                    <Text className="text-white font-rubik-medium text-base">
+                    <Text
+                      className="font-rubik-medium text-base"
+                      style={{ color: themeColors.text }}
+                    >
                       {event.attendees.length} {event.attendees.length === 1 ? 'person' : 'people'}
                     </Text>
-                    <Text className="text-gray-400 font-rubik text-sm">Attending</Text>
+                    <Text
+                      className="font-rubik text-sm"
+                      style={{ color: themeColors.textSecondary }}
+                    >
+                      Attending
+                    </Text>
                   </View>
                 </View>
 
@@ -632,8 +807,18 @@ const EventScreen = () => {
                       <Feather name="image" size={18} color="#ff4306" />
                     </View>
                     <View>
-                      <Text className="text-white font-rubik-medium text-base">Featured Image</Text>
-                      <Text className="text-gray-400 font-rubik text-sm">Event has media content</Text>
+                      <Text
+                        className="font-rubik-medium text-base"
+                        style={{ color: themeColors.text }}
+                      >
+                        Featured Image
+                      </Text>
+                      <Text
+                        className="font-rubik text-sm"
+                        style={{ color: themeColors.textSecondary }}
+                      >
+                        Event has media content
+                      </Text>
                     </View>
                   </View>
                 )}
@@ -645,7 +830,8 @@ const EventScreen = () => {
               <TouchableOpacity
                 onPress={handleAttendEvent}
                 disabled={actionLoading}
-                className={`p-4 rounded-xl mb-6 ${isAttending ? 'bg-gray-600' : 'bg-accent'} ${actionLoading ? 'opacity-50' : ''}`}
+                className={`p-4 rounded-xl mb-6 ${isAttending ? 'bg-gray-600' : 'bg-accent'
+                  } ${actionLoading ? 'opacity-50' : ''}`}
               >
                 <View className="flex-row items-center justify-center">
                   {actionLoading ? (
@@ -681,11 +867,23 @@ const EventScreen = () => {
         {activeTab === 'attendees' && (
           <View className="flex-1 px-4">
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-white font-rubik-bold text-xl">
+              <Text
+                className="font-rubik-bold text-xl"
+                style={{ color: themeColors.text }}
+              >
                 Attendees ({event.attendees.length})
               </Text>
-              <View className="bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
-                <Text className="text-gray-400 font-rubik-medium text-sm">
+              <View
+                className="px-3 py-1 rounded-full border"
+                style={{
+                  backgroundColor: themeColors.surface,
+                  borderColor: themeColors.border
+                }}
+              >
+                <Text
+                  className="font-rubik-medium text-sm"
+                  style={{ color: themeColors.textSecondary }}
+                >
                   {attendeesLoading ? 'Loading...' : `${attendees.length} loaded`}
                 </Text>
               </View>
@@ -694,7 +892,12 @@ const EventScreen = () => {
             {attendeesLoading ? (
               <View className="items-center py-8">
                 <ActivityIndicator size="large" color="#ff4306" />
-                <Text className="text-gray-400 font-rubik mt-2">Loading attendees...</Text>
+                <Text
+                  className="font-rubik mt-2"
+                  style={{ color: themeColors.textSecondary }}
+                >
+                  Loading attendees...
+                </Text>
               </View>
             ) : attendees.length > 0 ? (
               <ScrollView
@@ -706,10 +909,24 @@ const EventScreen = () => {
                 ))}
               </ScrollView>
             ) : (
-              <View className="bg-gray-800 p-6 rounded-xl items-center border border-gray-700">
-                <Feather name="users" size={48} color="#9CA3AF" />
-                <Text className="text-gray-400 font-rubik text-lg mb-2 mt-4">No attendees yet</Text>
-                <Text className="text-gray-500 font-rubik text-sm text-center">
+              <View
+                className="p-6 rounded-xl items-center border"
+                style={{
+                  backgroundColor: themeColors.surface,
+                  borderColor: themeColors.border
+                }}
+              >
+                <Feather name="users" size={48} color={themeColors.textTertiary} />
+                <Text
+                  className="font-rubik text-lg mb-2 mt-4"
+                  style={{ color: themeColors.textSecondary }}
+                >
+                  No attendees yet
+                </Text>
+                <Text
+                  className="font-rubik text-sm text-center"
+                  style={{ color: themeColors.textTertiary }}
+                >
                   Be the first to attend this event!
                 </Text>
               </View>
@@ -721,10 +938,24 @@ const EventScreen = () => {
           <View className="flex-1 px-4">
             {canAccessChat ? (
               <View className="items-center justify-center flex-1">
-                <View className="bg-gray-800 p-6 rounded-xl items-center max-w-sm border border-gray-700">
+                <View
+                  className="p-6 rounded-xl items-center max-w-sm border"
+                  style={{
+                    backgroundColor: themeColors.surface,
+                    borderColor: themeColors.border
+                  }}
+                >
                   <Feather name="message-circle" size={48} color="#ff4306" />
-                  <Text className="text-white font-rubik-bold text-xl mb-4 mt-4">💬 Event Chat</Text>
-                  <Text className="text-gray-300 font-rubik text-center mb-6">
+                  <Text
+                    className="font-rubik-bold text-xl mb-4 mt-4"
+                    style={{ color: themeColors.text }}
+                  >
+                    💬 Event Chat
+                  </Text>
+                  <Text
+                    className="font-rubik text-center mb-6"
+                    style={{ color: themeColors.textSecondary }}
+                  >
                     Connect and chat with other attendees in real-time!
                   </Text>
                   <TouchableOpacity
@@ -734,17 +965,34 @@ const EventScreen = () => {
                     <Feather name="message-circle" size={18} color="white" />
                     <Text className="text-white font-rubik-semibold ml-2">Open Chat Room</Text>
                   </TouchableOpacity>
-                  <Text className="text-gray-500 font-rubik text-sm mt-3 text-center">
+                  <Text
+                    className="font-rubik text-sm mt-3 text-center"
+                    style={{ color: themeColors.textTertiary }}
+                  >
                     Chat with {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
                   </Text>
                 </View>
               </View>
             ) : (
               <View className="items-center justify-center flex-1">
-                <View className="bg-gray-800 p-6 rounded-xl items-center max-w-sm border border-gray-700">
-                  <Feather name="lock" size={48} color="#9CA3AF" />
-                  <Text className="text-gray-400 font-rubik text-xl mb-4 mt-4">🔒 Chat Unavailable</Text>
-                  <Text className="text-gray-300 font-rubik text-center mb-6">
+                <View
+                  className="p-6 rounded-xl items-center max-w-sm border"
+                  style={{
+                    backgroundColor: themeColors.surface,
+                    borderColor: themeColors.border
+                  }}
+                >
+                  <Feather name="lock" size={48} color={themeColors.textTertiary} />
+                  <Text
+                    className="font-rubik text-xl mb-4 mt-4"
+                    style={{ color: themeColors.textSecondary }}
+                  >
+                    🔒 Chat Unavailable
+                  </Text>
+                  <Text
+                    className="font-rubik text-center mb-6"
+                    style={{ color: themeColors.textSecondary }}
+                  >
                     You need to attend this event to access the chat room.
                   </Text>
                   <TouchableOpacity

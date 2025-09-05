@@ -1,7 +1,8 @@
-import { TextInput } from 'react-native'
-import { RFPercentage } from 'react-native-responsive-fontsize'
+import { useTheme } from '@/context/theme-context';
+import { TextInput } from 'react-native';
+import { RFPercentage } from 'react-native-responsive-fontsize';
 
-import { TEXT_SIZE } from '@/constants'
+import { TEXT_SIZE } from '@/constants';
 
 interface LongTextInputProps {
   placeholder: string
@@ -30,6 +31,18 @@ const LongTextInput = ({
   editable = true,
   multiline = false
 }: LongTextInputProps) => {
+  const { activeTheme } = useTheme();
+
+  // Theme-aware colors
+  const themeColors = {
+    background: activeTheme === 'light' ? '#f9fafb' : '#374151',
+    border: activeTheme === 'light' ? '#d1d5db' : '#6b7280',
+    text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+    placeholder: activeTheme === 'light' ? '#9ca3af' : '#9ca3af',
+    errorBackground: activeTheme === 'light' ? '#fef2f2' : 'rgba(239, 68, 68, 0.1)',
+    errorBorder: activeTheme === 'light' ? '#f87171' : '#ef4444',
+    errorPlaceholder: activeTheme === 'light' ? '#f87171' : '#fca5a5'
+  };
 
   const textContentType =
     type === "telephoneNumber" ? "telephoneNumber" :
@@ -92,12 +105,20 @@ const LongTextInput = ({
       style={{
         fontSize: TEXT_SIZE,
         height: multiline ? RFPercentage(12) : RFPercentage(6.5),
-        textAlignVertical: multiline ? 'top' : 'center'
+        textAlignVertical: multiline ? 'top' : 'center',
+        backgroundColor: error ? themeColors.errorBackground : themeColors.background,
+        color: themeColors.text,
+        borderColor: error ? themeColors.errorBorder : themeColors.border,
+        width: width
+          ? width.endsWith('%')
+            ? undefined // Ignore percentage strings for RN style, handle via container if needed
+            : Number(width)
+          : RFPercentage(90), // Use RFPercentage or a default number value
+        opacity: !editable ? 0.6 : 1
       }}
-      className={`w-[${width ? width : "90%"}] text-white font-rubik-bold px-4 py-3 rounded-lg ${error ? 'bg-red-900/20 border border-red-500' : 'bg-zinc-800 border border-gray-700'
-        } ${!editable ? 'opacity-60' : ''}`}
+      className={`font-rubik-bold px-4 py-3 rounded-lg border`}
       placeholder={placeholder}
-      placeholderTextColor={error ? "#fca5a5" : "gray"}
+      placeholderTextColor={error ? themeColors.errorPlaceholder : themeColors.placeholder}
       value={text}
       onChangeText={handleTextChange}
       textContentType={textContentType}

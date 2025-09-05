@@ -1,3 +1,4 @@
+import { useTheme } from '@/context/theme-context';
 import React from 'react';
 import { AccessibilityInfo, Platform, Text, View } from 'react-native';
 
@@ -46,6 +47,11 @@ export const ScreenReaderHelpText: React.FC<ScreenReaderHelpTextProps> = ({
     text,
     visible = false
 }) => {
+    const { activeTheme } = useTheme();
+
+    // Theme-aware colors
+    const textColor = activeTheme === 'light' ? '#9ca3af' : '#6b7280';
+
     return (
         <View
             style={{
@@ -57,7 +63,8 @@ export const ScreenReaderHelpText: React.FC<ScreenReaderHelpTextProps> = ({
             }}
         >
             <Text
-                className="text-gray-400 font-rubik text-xs mt-1"
+                className="font-rubik text-xs mt-1"
+                style={{ color: textColor }}
                 accessible={true}
                 accessibilityRole="text"
                 importantForAccessibility="yes"
@@ -101,6 +108,11 @@ export const SkipNavigation: React.FC<SkipNavigationProps> = ({
     onSkip,
     skipText = "Skip to main content"
 }) => {
+    const { activeTheme } = useTheme();
+
+    // Theme-aware colors
+    const textColor = activeTheme === 'light' ? '#ffffff' : '#ffffff';
+
     return (
         <View
             style={{
@@ -116,7 +128,10 @@ export const SkipNavigation: React.FC<SkipNavigationProps> = ({
             accessibilityLabel={skipText}
             onAccessibilityTap={onSkip}
         >
-            <Text className="text-white font-rubik-medium text-center">
+            <Text
+                className="font-rubik-medium text-center"
+                style={{ color: textColor }}
+            >
                 {skipText}
             </Text>
         </View>

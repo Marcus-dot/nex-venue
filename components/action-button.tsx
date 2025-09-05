@@ -1,3 +1,4 @@
+import { useTheme } from '@/context/theme-context';
 import { Entypo } from '@expo/vector-icons';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { ActivityIndicator, DimensionValue, Text, TouchableOpacity } from 'react-native';
@@ -29,15 +30,57 @@ const ActionButton = ({
     variant = 'primary',
     size = 'medium'
 }: ActionButtonProps) => {
+    const { activeTheme } = useTheme();
+
+    // Theme-aware colors
+    const themeColors = {
+        primaryBackground: '#ff4306',
+        primaryText: '#ffffff',
+        secondaryBackground: activeTheme === 'light' ? '#f3f4f6' : '#374151',
+        secondaryBorder: activeTheme === 'light' ? '#d1d5db' : '#6b7280',
+        secondaryText: activeTheme === 'light' ? '#374151' : '#ffffff',
+        dangerBackground: '#ef4444',
+        dangerText: '#ffffff'
+    };
 
     const getVariantStyles = () => {
         switch (variant) {
             case 'secondary':
-                return 'bg-gray-700 border border-gray-600';
+                return {
+                    backgroundColor: themeColors.secondaryBackground,
+                    borderWidth: 1,
+                    borderColor: themeColors.secondaryBorder
+                };
             case 'danger':
-                return 'bg-red-600';
+                return {
+                    backgroundColor: themeColors.dangerBackground
+                };
             default:
-                return 'bg-accent';
+                return {
+                    backgroundColor: themeColors.primaryBackground
+                };
+        }
+    };
+
+    const getTextColor = () => {
+        switch (variant) {
+            case 'secondary':
+                return themeColors.secondaryText;
+            case 'danger':
+                return themeColors.dangerText;
+            default:
+                return themeColors.primaryText;
+        }
+    };
+
+    const getIconColor = () => {
+        switch (variant) {
+            case 'secondary':
+                return themeColors.secondaryText;
+            case 'danger':
+                return themeColors.dangerText;
+            default:
+                return themeColors.primaryText;
         }
     };
 
@@ -83,12 +126,13 @@ const ActionButton = ({
             disabled={isDisabled}
             style={[
                 getSizeStyles(),
+                getVariantStyles(),
                 {
                     width: width ? width : "90%",
                     opacity: isDisabled ? 0.6 : 1
                 }
             ]}
-            className={`${getVariantStyles()} mt-6 pr-2 pl-3 rounded-2xl flex flex-row items-center ${loading ? "justify-center" : "justify-between"
+            className={`mt-6 pr-2 pl-3 rounded-2xl flex flex-row items-center ${loading ? "justify-center" : "justify-between"
                 } ${isDisabled ? 'opacity-60' : 'active:scale-95'}`}
             onPress={handlePressWithHaptics}
             activeOpacity={0.8}
@@ -105,14 +149,17 @@ const ActionButton = ({
             {loading ?
                 <ActivityIndicator
                     size={size === 'small' ? 'small' : 'large'}
-                    color="white"
+                    color={getTextColor()}
                     accessibilityLabel="Loading"
                 />
                 :
                 <>
                     <Text
-                        style={{ fontSize: getFontSize() }}
-                        className='text-white font-rubik-extrabold'
+                        style={{
+                            fontSize: getFontSize(),
+                            color: getTextColor()
+                        }}
+                        className='font-rubik-extrabold'
                         numberOfLines={1}
                         ellipsizeMode="tail"
                     >
@@ -122,7 +169,7 @@ const ActionButton = ({
                         <Entypo
                             name='chevron-right'
                             size={ICON_SIZE * (size === 'small' ? 0.7 : size === 'large' ? 1.2 : 1)}
-                            color="white"
+                            color={getIconColor()}
                             accessibilityElementsHidden={true}
                         />
                     )}

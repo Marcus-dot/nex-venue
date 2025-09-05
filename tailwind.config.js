@@ -9,11 +9,11 @@ module.exports = {
         // Background colors
         background: {
           DEFAULT: "#D8D9D4", // Light mode background
-          dark: "#161616"     // Dark mode background
+          dark: "#222551"     // Updated to use your blue color
         },
 
-        // Accent color (same for both modes)
-        accent: "#ff4306",
+        // Accent color - updated to your orange
+        accent: "#e85c29",
 
         // Card/Surface colors
         surface: {

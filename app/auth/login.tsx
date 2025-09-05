@@ -28,12 +28,12 @@ const Login = () => {
 
   // Theme-aware colors
   const themeColors = {
-    background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+    background: activeTheme === 'light' ? '#D8D9D4' : '#222551', // Updated to use your blue
     surface: activeTheme === 'light' ? '#ffffff' : '#374151',
     text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
     textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
     textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
-    accent: '#ff4306',
+    accent: '#e85c29', // Updated from '#ff4306'
     icon: activeTheme === 'light' ? '#374151' : '#ffffff',
     iconSecondary: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
     border: activeTheme === 'light' ? '#e5e7eb' : '#374151',

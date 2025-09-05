@@ -13,7 +13,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
     // Theme-aware blur tint and styling
     const blurTint = activeTheme === 'light' ? 'systemChromeMaterialLight' : 'systemChromeMaterialDark';
-    const backgroundColor = activeTheme === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(55, 65, 81, 0.9)';
+    const backgroundColor = activeTheme === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(34, 37, 81, 0.9)'; // Updated to use your blue
     const borderColor = activeTheme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
 
     return (

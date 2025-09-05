@@ -1,3 +1,6 @@
+
+// File: components/chat/message-item.tsx
+
 import { useAuth } from '@/context/auth-context';
 import { chatService } from '@/services/chat';
 import { ChatMessage } from '@/types/chat';
@@ -96,14 +99,15 @@ const MessageItem: React.FC<MessageItemProps> = ({
                         onLongPress={handleLongPress}
                         activeOpacity={0.8}
                         className={`px-4 py-3 rounded-2xl ${isOwnMessage
-                                ? 'bg-accent'
-                                : 'bg-gray-800 border border-gray-700'
+                            ? '' // Will use style prop for background
+                            : 'bg-gray-800 border border-gray-700'
                             } ${isConsecutive
                                 ? isOwnMessage
                                     ? 'rounded-tr-md'
                                     : 'rounded-tl-md'
                                 : ''
                             }`}
+                        style={isOwnMessage ? { backgroundColor: '#e85c29' } : {}}
                     >
                         <Text className={`font-rubik ${isOwnMessage ? 'text-white' : 'text-white'}`}>
                             {message.message}

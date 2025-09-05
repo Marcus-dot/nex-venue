@@ -86,7 +86,7 @@ const EventCard = memo<{
                     </Text>
                 </View>
                 {isCreator && (
-                    <View className="bg-accent px-3 py-1 rounded-full">
+                    <View style={{ backgroundColor: '#e85c29' }} className="px-3 py-1 rounded-full">
                         <Text className="text-white font-rubik-medium text-xs">Your Event</Text>
                     </View>
                 )}
@@ -100,8 +100,8 @@ const EventCard = memo<{
             {/* Event Details */}
             <View className="space-y-2 mb-4">
                 <View className="flex-row items-center">
-                    <Feather name="calendar" size={14} color="#ff4306" />
-                    <Text className="text-accent font-rubik-medium text-sm ml-2">
+                    <Feather name="calendar" size={14} color="#e85c29" />
+                    <Text style={{ color: '#e85c29' }} className="font-rubik-medium text-sm ml-2">
                         {event.date} at {event.time}
                     </Text>
                 </View>
@@ -133,8 +133,9 @@ const EventCard = memo<{
                             ? activeTheme === 'light' ? 'bg-gray-400' : 'bg-gray-600'
                             : isProcessing
                                 ? activeTheme === 'light' ? 'bg-gray-400' : 'bg-gray-600'
-                                : 'bg-accent'
+                                : ''
                             }`}
+                        style={!isAttending && !isProcessing ? { backgroundColor: '#e85c29' } : {}}
                         disabled={isAttending || isProcessing}
                         activeOpacity={0.8}
                     >
@@ -243,7 +244,7 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
         if (loading) {
             return (
                 <View className="flex-1 justify-center items-center py-20">
-                    <ActivityIndicator size="large" color="#ff4306" />
+                    <ActivityIndicator size="large" color="#e85c29" />
                     <Text className={`${loadingTextColor} font-rubik mt-4`}>Loading events...</Text>
                 </View>
             );
@@ -270,7 +271,7 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
 
         return (
             <View className="py-4 items-center">
-                <ActivityIndicator size="small" color="#ff4306" />
+                <ActivityIndicator size="small" color="#e85c29" />
                 <Text className={`${loadingTextColor} font-rubik text-sm mt-2`}>Loading more events...</Text>
             </View>
         );

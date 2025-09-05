@@ -19,13 +19,13 @@ const Terms = () => {
 
   // Theme-aware colors
   const themeColors = {
-    background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+    background: activeTheme === 'light' ? '#D8D9D4' : '#222551',
     surface: activeTheme === 'light' ? '#ffffff' : '#374151',
     surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
     text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
     textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
     textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
-    accent: '#ff4306',
+    accent: '#e85c29',
     border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
     toggleBackground: activeTheme === 'light' ? '#ffffff' : '#374151',
     toggleBorder: activeTheme === 'light' ? '#e5e7eb' : '#4b5563',

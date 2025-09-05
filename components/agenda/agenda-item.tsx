@@ -1,3 +1,5 @@
+// File: components/agenda/agenda-item.tsx
+
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { AgendaItem as AgendaItemType } from '@/types/agenda';
@@ -24,7 +26,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
 
     // Theme-aware colors
     const themeColors = {
-        background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+        background: activeTheme === 'light' ? '#D8D9D4' : '#222551',
         surface: activeTheme === 'light' ? '#ffffff' : '#374151',
         surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
         text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
@@ -33,8 +35,8 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
         breakBackground: activeTheme === 'light' ? '#f9fafb' : '#374151',
         breakBorder: activeTheme === 'light' ? '#e5e7eb' : '#4b5563',
-        currentBackground: activeTheme === 'light' ? 'rgba(255, 67, 6, 0.1)' : 'rgba(255, 67, 6, 0.2)',
-        currentBorder: activeTheme === 'light' ? 'rgba(255, 67, 6, 0.3)' : '#ff4306'
+        currentBackground: activeTheme === 'light' ? 'rgba(232, 92, 41, 0.1)' : 'rgba(232, 92, 41, 0.2)',
+        currentBorder: activeTheme === 'light' ? 'rgba(232, 92, 41, 0.3)' : '#e85c29'
     };
 
     const getCategoryColor = (category?: string) => {
@@ -45,7 +47,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
             case 'workshop': return 'bg-yellow-600';
             case 'networking': return 'bg-pink-600';
             case 'break': return 'bg-gray-600';
-            default: return 'bg-accent';
+            default: return 'bg-[#e85c29]'; // Using the new orange color
         }
     };
 
@@ -99,7 +101,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                             </View>
                         )}
                         {isCurrentItem && (
-                            <View className="bg-accent px-2 py-1 rounded-full">
+                            <View style={{ backgroundColor: '#e85c29' }} className="px-2 py-1 rounded-full">
                                 <Text className="text-white font-rubik-medium text-xs">LIVE</Text>
                             </View>
                         )}
@@ -118,7 +120,8 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                         {onSetCurrent && !isCurrentItem && (
                             <TouchableOpacity
                                 onPress={() => onSetCurrent(item.id)}
-                                className="bg-accent px-2 py-1 rounded mr-1"
+                                style={{ backgroundColor: '#e85c29' }}
+                                className="px-2 py-1 rounded mr-1"
                             >
                                 <Text className="text-white font-rubik-medium text-xs">SET LIVE</Text>
                             </TouchableOpacity>
@@ -145,7 +148,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
 
             {/* Time and Location */}
             <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-accent font-rubik-semibold">
+                <Text style={{ color: '#e85c29' }} className="font-rubik-semibold">
                     {formatTime(item.startTime)} - {formatTime(item.endTime)}
                 </Text>
                 {item.location && (

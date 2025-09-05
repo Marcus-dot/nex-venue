@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { logoutUser } from '@/services/auth';
 import { Feather } from '@expo/vector-icons';
 import firestore from '@react-native-firebase/firestore';
@@ -9,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Profile = () => {
   const { user, userProfile, isAdmin } = useAuth();
+  const { activeTheme } = useTheme();
   const [stats, setStats] = useState({
     eventsCreated: 0,
     eventsAttending: 0,
@@ -17,6 +19,21 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // Theme-aware colors
+  const themeColors = {
+    background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+    surface: activeTheme === 'light' ? '#ffffff' : '#374151',
+    surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
+    text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+    textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
+    textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
+    border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    skeletonBg: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    adminBg: activeTheme === 'light' ? 'rgba(255, 67, 6, 0.1)' : 'rgba(255, 67, 6, 0.2)',
+    adminBorder: activeTheme === 'light' ? 'rgba(255, 67, 6, 0.3)' : 'rgba(255, 67, 6, 0.5)',
+    versionText: activeTheme === 'light' ? '#9ca3af' : '#6b7280'
+  };
 
   const fetchUserStats = async () => {
     if (!user) return;
@@ -104,7 +121,13 @@ const Profile = () => {
     icon: string;
     color?: string;
   }) => (
-    <View className="bg-gray-800 p-4 rounded-xl flex-1 mx-1 border border-gray-700">
+    <View
+      className={`p-4 rounded-xl flex-1 mx-1 border`}
+      style={{
+        backgroundColor: themeColors.surface,
+        borderColor: themeColors.border
+      }}
+    >
       <View className="items-center">
         <View
           className="w-12 h-12 rounded-full items-center justify-center mb-3"
@@ -112,14 +135,23 @@ const Profile = () => {
         >
           <Feather name={icon as any} size={24} color={color} />
         </View>
-        <Text className="text-white font-rubik-bold text-2xl text-center mb-1">
+        <Text
+          className="font-rubik-bold text-2xl text-center mb-1"
+          style={{ color: themeColors.text }}
+        >
           {value}
         </Text>
-        <Text className="text-white font-rubik-medium text-sm text-center leading-5">
+        <Text
+          className="font-rubik-medium text-sm text-center leading-5"
+          style={{ color: themeColors.text }}
+        >
           {title}
         </Text>
         {subtitle && (
-          <Text className="text-gray-400 font-rubik text-xs text-center mt-1 leading-4">
+          <Text
+            className="font-rubik text-xs text-center mt-1 leading-4"
+            style={{ color: themeColors.textSecondary }}
+          >
             {subtitle}
           </Text>
         )}
@@ -144,29 +176,48 @@ const Profile = () => {
   }) => (
     <TouchableOpacity
       onPress={onPress}
-      className={`p-4 rounded-xl flex-row items-center mb-3 border ${danger
-        ? 'bg-red-950 border-red-900'
-        : 'bg-gray-800 border-gray-700'
-        }`}
+      className={`p-4 rounded-xl flex-row items-center mb-3 border`}
+      style={{
+        backgroundColor: danger
+          ? (activeTheme === 'light' ? '#fef2f2' : '#450a0a')
+          : themeColors.surface,
+        borderColor: danger
+          ? (activeTheme === 'light' ? '#fecaca' : '#7f1d1d')
+          : themeColors.border
+      }}
       activeOpacity={0.8}
     >
       <View
-        className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${danger ? 'bg-red-900' : 'bg-gray-700'
-          }`}
+        className={`w-10 h-10 rounded-full items-center justify-center mr-4`}
+        style={{
+          backgroundColor: danger
+            ? (activeTheme === 'light' ? '#fee2e2' : '#7f1d1d')
+            : themeColors.surfaceSecondary
+        }}
       >
         <Feather
           name={icon as any}
           size={18}
-          color={danger ? "#ef4444" : "#ffffff"}
+          color={danger ? "#ef4444" : (activeTheme === 'light' ? '#374151' : '#ffffff')}
         />
       </View>
       <View className="flex-1">
-        <Text className={`font-rubik-medium text-base ${danger ? 'text-red-400' : 'text-white'
-          }`}>
+        <Text
+          className="font-rubik-medium text-base"
+          style={{
+            color: danger ? "#ef4444" : themeColors.text
+          }}
+        >
           {title}
         </Text>
-        <Text className={`font-rubik text-sm ${danger ? 'text-red-500' : 'text-gray-400'
-          }`}>
+        <Text
+          className="font-rubik text-sm"
+          style={{
+            color: danger
+              ? (activeTheme === 'light' ? '#dc2626' : '#f87171')
+              : themeColors.textSecondary
+          }}
+        >
           {subtitle}
         </Text>
       </View>
@@ -174,7 +225,7 @@ const Profile = () => {
         <Feather
           name="chevron-right"
           size={18}
-          color={danger ? "#ef4444" : "#9CA3AF"}
+          color={danger ? "#ef4444" : themeColors.textTertiary}
         />
       )}
     </TouchableOpacity>
@@ -184,21 +235,49 @@ const Profile = () => {
     <View className="px-6 pt-4">
       {/* Profile Header Skeleton */}
       <View className="items-center mb-8">
-        <View className="w-20 h-20 bg-gray-700 rounded-full mb-4 animate-pulse"></View>
-        <View className="h-6 bg-gray-700 rounded w-32 mb-2 animate-pulse"></View>
-        <View className="h-4 bg-gray-700 rounded w-24 animate-pulse"></View>
+        <View
+          className="w-20 h-20 rounded-full mb-4 animate-pulse"
+          style={{ backgroundColor: themeColors.skeletonBg }}
+        />
+        <View
+          className="h-6 rounded w-32 mb-2 animate-pulse"
+          style={{ backgroundColor: themeColors.skeletonBg }}
+        />
+        <View
+          className="h-4 rounded w-24 animate-pulse"
+          style={{ backgroundColor: themeColors.skeletonBg }}
+        />
       </View>
 
       {/* Stats Skeleton */}
       <View className="mb-8">
-        <View className="h-5 bg-gray-700 rounded w-32 mb-4 animate-pulse"></View>
+        <View
+          className="h-5 rounded w-32 mb-4 animate-pulse"
+          style={{ backgroundColor: themeColors.skeletonBg }}
+        />
         <View className="flex-row">
           {[1, 2, 3].map((i) => (
-            <View key={i} className="bg-gray-800 p-4 rounded-xl flex-1 mx-1 border border-gray-700">
+            <View
+              key={i}
+              className="p-4 rounded-xl flex-1 mx-1 border"
+              style={{
+                backgroundColor: themeColors.surface,
+                borderColor: themeColors.border
+              }}
+            >
               <View className="items-center animate-pulse">
-                <View className="w-12 h-12 bg-gray-700 rounded-full mb-3"></View>
-                <View className="h-8 bg-gray-700 rounded w-8 mb-1"></View>
-                <View className="h-4 bg-gray-700 rounded w-16"></View>
+                <View
+                  className="w-12 h-12 rounded-full mb-3"
+                  style={{ backgroundColor: themeColors.skeletonBg }}
+                />
+                <View
+                  className="h-8 rounded w-8 mb-1"
+                  style={{ backgroundColor: themeColors.skeletonBg }}
+                />
+                <View
+                  className="h-4 rounded w-16"
+                  style={{ backgroundColor: themeColors.skeletonBg }}
+                />
               </View>
             </View>
           ))}
@@ -207,11 +286,27 @@ const Profile = () => {
 
       {/* Actions Skeleton */}
       {[1, 2, 3, 4].map((i) => (
-        <View key={i} className="bg-gray-800 p-4 rounded-xl flex-row items-center mb-3 border border-gray-700">
-          <View className="w-10 h-10 bg-gray-700 rounded-full mr-4 animate-pulse"></View>
+        <View
+          key={i}
+          className="p-4 rounded-xl flex-row items-center mb-3 border"
+          style={{
+            backgroundColor: themeColors.surface,
+            borderColor: themeColors.border
+          }}
+        >
+          <View
+            className="w-10 h-10 rounded-full mr-4 animate-pulse"
+            style={{ backgroundColor: themeColors.skeletonBg }}
+          />
           <View className="flex-1">
-            <View className="h-4 bg-gray-700 rounded w-24 mb-2 animate-pulse"></View>
-            <View className="h-3 bg-gray-700 rounded w-32 animate-pulse"></View>
+            <View
+              className="h-4 rounded w-24 mb-2 animate-pulse"
+              style={{ backgroundColor: themeColors.skeletonBg }}
+            />
+            <View
+              className="h-3 rounded w-32 animate-pulse"
+              style={{ backgroundColor: themeColors.skeletonBg }}
+            />
           </View>
         </View>
       ))}
@@ -250,14 +345,22 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+      <SafeAreaView
+        className="flex-1"
+        style={{ backgroundColor: themeColors.background }}
+        edges={['top']}
+      >
         <LoadingSkeleton />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: themeColors.background }}
+      edges={['top']}
+    >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -268,7 +371,7 @@ const Profile = () => {
             onRefresh={onRefresh}
             tintColor="#ff4306"
             title="Pull to refresh"
-            titleColor="#ffffff"
+            titleColor={themeColors.text}
           />
         }
       >
@@ -281,13 +384,19 @@ const Profile = () => {
               </Text>
             </View>
 
-            <Text className="text-white font-rubik-bold text-2xl mb-1">
+            <Text
+              className="font-rubik-bold text-2xl mb-1"
+              style={{ color: themeColors.text }}
+            >
               {userProfile?.fullName || 'Welcome'}
             </Text>
 
             <View className="flex-row items-center mb-2">
-              <Feather name="phone" size={14} color="#9CA3AF" />
-              <Text className="text-gray-400 font-rubik text-base ml-2">
+              <Feather name="phone" size={14} color={themeColors.textTertiary} />
+              <Text
+                className="font-rubik text-base ml-2"
+                style={{ color: themeColors.textSecondary }}
+              >
                 {userProfile?.phoneNumber}
               </Text>
             </View>
@@ -304,8 +413,11 @@ const Profile = () => {
             )}
 
             <View className="flex-row items-center">
-              <Feather name="calendar" size={14} color="#9CA3AF" />
-              <Text className="text-gray-400 font-rubik text-sm ml-2">
+              <Feather name="calendar" size={14} color={themeColors.textTertiary} />
+              <Text
+                className="font-rubik text-sm ml-2"
+                style={{ color: themeColors.textSecondary }}
+              >
                 Member since {getMemberSinceDate()}
               </Text>
             </View>
@@ -313,14 +425,23 @@ const Profile = () => {
 
           {/* Admin Privileges Notice */}
           {isAdmin && (
-            <View className="bg-gradient-to-r from-accent/20 to-accent/10 border border-accent/50 p-4 rounded-xl mb-6">
+            <View
+              className="p-4 rounded-xl mb-6 border"
+              style={{
+                backgroundColor: themeColors.adminBg,
+                borderColor: themeColors.adminBorder
+              }}
+            >
               <View className="flex-row items-center mb-3">
                 <Feather name="shield" size={20} color="#ff4306" />
                 <Text className="text-accent font-rubik-bold text-lg ml-2">
                   Admin Privileges
                 </Text>
               </View>
-              <Text className="text-white font-rubik text-sm mb-3 leading-5">
+              <Text
+                className="font-rubik text-sm mb-3 leading-5"
+                style={{ color: themeColors.text }}
+              >
                 You have administrator access with advanced capabilities:
               </Text>
               <View className="space-y-2">
@@ -331,7 +452,10 @@ const Profile = () => {
                 ].map((privilege, index) => (
                   <View key={index} className="flex-row items-center">
                     <Feather name="check-circle" size={14} color="#ff4306" />
-                    <Text className="text-gray-300 font-rubik text-sm ml-2 flex-1 leading-5">
+                    <Text
+                      className="font-rubik text-sm ml-2 flex-1 leading-5"
+                      style={{ color: themeColors.textSecondary }}
+                    >
                       {privilege}
                     </Text>
                   </View>
@@ -342,7 +466,12 @@ const Profile = () => {
 
           {/* Stats Section */}
           <View className="mb-8">
-            <Text className="text-white font-rubik-semibold text-xl mb-4">Your Activity</Text>
+            <Text
+              className="font-rubik-semibold text-xl mb-4"
+              style={{ color: themeColors.text }}
+            >
+              Your Activity
+            </Text>
             <View className="flex-row">
               <StatCard
                 icon="calendar"
@@ -368,7 +497,12 @@ const Profile = () => {
 
           {/* Profile Actions */}
           <View className="mb-8">
-            <Text className="text-white font-rubik-semibold text-xl mb-4">Account Settings</Text>
+            <Text
+              className="font-rubik-semibold text-xl mb-4"
+              style={{ color: themeColors.text }}
+            >
+              Account Settings
+            </Text>
 
             <ProfileAction
               title="Edit Profile"
@@ -396,12 +530,9 @@ const Profile = () => {
 
             <ProfileAction
               title="Settings & Preferences"
-              subtitle="Notifications and app preferences"
+              subtitle="Theme, notifications and app preferences"
               icon="settings"
-              onPress={() => {
-                // TODO: Implement settings
-                Alert.alert('Coming Soon', 'Settings will be available in the next update.');
-              }}
+              onPress={() => router.push('/(app-screens)/(profile)/settings')}
             />
 
             <ProfileAction
@@ -430,7 +561,10 @@ const Profile = () => {
 
           {/* Version Info */}
           <View className="items-center mt-8 mb-4">
-            <Text className="text-gray-500 font-rubik text-xs">
+            <Text
+              className="font-rubik text-xs"
+              style={{ color: themeColors.versionText }}
+            >
               NexVenue v1.0.0 • Powered by Gralix
             </Text>
           </View>
@@ -440,9 +574,20 @@ const Profile = () => {
       {/* Loading Overlay for Logout */}
       {loggingOut && (
         <View className="absolute inset-0 bg-black/50 items-center justify-center">
-          <View className="bg-gray-800 p-6 rounded-xl items-center border border-gray-700">
+          <View
+            className="p-6 rounded-xl items-center border"
+            style={{
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border
+            }}
+          >
             <ActivityIndicator size="large" color="#ff4306" />
-            <Text className="text-white font-rubik-medium mt-4">Signing out...</Text>
+            <Text
+              className="font-rubik-medium mt-4"
+              style={{ color: themeColors.text }}
+            >
+              Signing out...
+            </Text>
           </View>
         </View>
       )}

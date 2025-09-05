@@ -1,4 +1,5 @@
 import { ACCENT_COlOR } from "@/constants";
+import { useTheme } from "@/context/theme-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import { StyleSheet, View } from "react-native";
@@ -8,6 +9,12 @@ import TabBarButton from "./tab-bar-button";
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
+    const { activeTheme } = useTheme();
+
+    // Theme-aware blur tint and styling
+    const blurTint = activeTheme === 'light' ? 'systemChromeMaterialLight' : 'systemChromeMaterialDark';
+    const backgroundColor = activeTheme === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(55, 65, 81, 0.9)';
+    const borderColor = activeTheme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
 
     return (
         <View className="" style={styles.tabBarContainer}>
@@ -16,11 +23,14 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                     styles.tabBar,
                     {
                         bottom: Math.max(insets.bottom + 10, RFPercentage(3)),
+                        backgroundColor: backgroundColor,
+                        borderWidth: 1,
+                        borderColor: borderColor,
                     }
                 ]}
                 className="absolute overflow-hidden"
-                tint="systemChromeMaterialDark"
-                intensity={70}
+                tint={blurTint}
+                intensity={activeTheme === 'light' ? 80 : 70}
             >
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
@@ -54,7 +64,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                             onLongPress={onLongPress}
                             isFocused={isFocused}
                             routeName={route.name}
-                            color={isFocused ? ACCENT_COlOR : "white"}
+                            color={isFocused ? ACCENT_COlOR : (activeTheme === 'light' ? '#6b7280' : '#9CA3AF')}
                             label={label as string}
                         />
                     )

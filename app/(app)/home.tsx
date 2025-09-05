@@ -10,6 +10,7 @@ import PageTransition from '@/components/page-transition';
 import PlatformStatusBar from '@/components/platform-status-bar';
 import { ScreenReaderAnnouncement } from '@/components/screen-reader-helper';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { useOptimizedFirestore } from '@/hooks/useOptimizedFirestore';
 import { useDebounce, useExpensiveOperation } from '@/hooks/usePerformance';
 
@@ -18,6 +19,7 @@ import type { Event } from '@/types/events';
 
 const Home = () => {
   const { user, userProfile } = useAuth();
+  const { activeTheme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [attendingEvents, setAttendingEvents] = useState<Set<string>>(new Set());
@@ -29,6 +31,18 @@ const Home = () => {
 
   // Check if user is admin
   const isAdmin = userProfile?.role === 'admin';
+
+  // Theme-aware colors
+  const themeColors = {
+    background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+    surface: activeTheme === 'light' ? '#ffffff' : '#374151',
+    surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
+    text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+    textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
+    border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    input: activeTheme === 'light' ? '#f9fafb' : '#374151',
+    inputBorder: activeTheme === 'light' ? '#d1d5db' : '#6b7280'
+  };
 
   // Optimized Firestore query with caching
   const {
@@ -153,12 +167,14 @@ const Home = () => {
       {/* Welcome Section */}
       <View className="flex-row justify-between items-center mb-6">
         <View className="flex-1">
-          <Text className="text-white font-rubik text-xl mb-1">
+          <Text
+            className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik text-xl mb-1`}
+          >
             Welcome back!
           </Text>
           <Text
             style={{ fontSize: TEXT_SIZE * 0.9 }}
-            className="text-gray-400 font-rubik"
+            className={`${activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400'} font-rubik`}
             numberOfLines={1}
           >
             {userProfile?.fullName || 'Event Explorer'}
@@ -187,9 +203,16 @@ const Home = () => {
             <Text className="text-white font-rubik-semibold ml-2">Create Event</Text>
           </AccessibleTouchable>
         ) : (
-          <View className="flex-1 bg-gray-800 p-4 rounded-xl flex-row items-center justify-center border border-gray-700">
+          <View
+            className={`flex-1 p-4 rounded-xl flex-row items-center justify-center border ${activeTheme === 'light'
+              ? 'bg-gray-100 border-gray-300'
+              : 'bg-gray-800 border-gray-700'
+              }`}
+          >
             <Feather name="calendar" size={20} color="#9CA3AF" />
-            <Text className="text-gray-400 font-rubik-medium ml-2">Discover Events</Text>
+            <Text className={`${activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400'} font-rubik-medium ml-2`}>
+              Discover Events
+            </Text>
           </View>
         )}
 
@@ -197,16 +220,26 @@ const Home = () => {
           onPress={() => router.push("/(app)/discover")}
           accessibilityLabel="Search events"
           accessibilityHint="Browse and discover events"
-          className="bg-gray-800 p-4 rounded-xl border border-gray-700"
+          className={`p-4 rounded-xl border ${activeTheme === 'light'
+            ? 'bg-gray-100 border-gray-300'
+            : 'bg-gray-800 border-gray-700'
+            }`}
         >
-          <Feather name="compass" size={20} color="white" />
+          <Feather name="compass" size={20} color={activeTheme === 'light' ? '#374151' : 'white'} />
         </AccessibleTouchable>
       </View>
 
       {/* Simple Search Input */}
       <View className="mb-4">
-        <View className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-          <Text className="text-gray-400 font-rubik text-sm mb-2">Search Events</Text>
+        <View
+          className={`rounded-xl p-4 border ${activeTheme === 'light'
+            ? 'bg-white border-gray-300'
+            : 'bg-gray-800 border-gray-700'
+            }`}
+        >
+          <Text className={`${activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400'} font-rubik text-sm mb-2`}>
+            Search Events
+          </Text>
           <TouchableOpacity
             className="flex-row items-center"
             onPress={() => {
@@ -216,7 +249,7 @@ const Home = () => {
             activeOpacity={0.7}
           >
             <Feather name="search" size={16} color="#9CA3AF" />
-            <Text className="text-gray-300 font-rubik ml-2">
+            <Text className={`${activeTheme === 'light' ? 'text-gray-700' : 'text-gray-300'} font-rubik ml-2`}>
               {searchQuery || 'Try searching for "music", "tech", or location...'}
             </Text>
           </TouchableOpacity>
@@ -225,8 +258,13 @@ const Home = () => {
 
       {/* Search Results Info */}
       {debouncedSearchQuery && (
-        <View className="bg-gray-800 p-3 rounded-lg mb-4 border border-gray-700">
-          <Text className="text-gray-300 font-rubik text-sm">
+        <View
+          className={`p-3 rounded-lg mb-4 border ${activeTheme === 'light'
+            ? 'bg-blue-50 border-blue-200'
+            : 'bg-gray-800 border-gray-700'
+            }`}
+        >
+          <Text className={`${activeTheme === 'light' ? 'text-gray-700' : 'text-gray-300'} font-rubik text-sm`}>
             {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found for "{debouncedSearchQuery}"
           </Text>
           <AccessibleTouchable
@@ -240,16 +278,16 @@ const Home = () => {
         </View>
       )}
     </View>
-  ), [userProfile?.fullName, debouncedSearchQuery, filteredEvents.length, searchQuery, handleCreateEvent, handleSearch, handleViewProfile, isAdmin]);
+  ), [userProfile?.fullName, debouncedSearchQuery, filteredEvents.length, searchQuery, handleCreateEvent, handleSearch, handleViewProfile, isAdmin, activeTheme]);
 
   // Memoized empty component as a function (not JSX element)
   const EmptyComponent = useCallback(() => (
     <View className="items-center py-20 px-6">
       <Feather name="calendar" size={64} color="#9CA3AF" />
-      <Text className="text-white font-rubik-bold text-xl mt-6 mb-3 text-center">
+      <Text className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik-bold text-xl mt-6 mb-3 text-center`}>
         No Events Found
       </Text>
-      <Text className="text-gray-400 font-rubik text-center mb-8 leading-6">
+      <Text className={`${activeTheme === 'light' ? 'text-gray-600' : 'text-gray-500'} font-rubik text-center mb-8 leading-6`}>
         {debouncedSearchQuery
           ? `No events match your search for "${debouncedSearchQuery}". Try different keywords or browse all events.`
           : "There are no events available right now. Check back later for new events!"
@@ -277,25 +315,33 @@ const Home = () => {
         <AccessibleTouchable
           onPress={() => setSearchQuery('')}
           accessibilityLabel="Clear search"
-          className="bg-gray-700 px-6 py-3 rounded-xl"
+          className={`px-6 py-3 rounded-xl ${activeTheme === 'light' ? 'bg-gray-200' : 'bg-gray-700'
+            }`}
         >
-          <Text className="text-white font-rubik-semibold">Clear Search</Text>
+          <Text className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik-semibold`}>
+            Clear Search
+          </Text>
         </AccessibleTouchable>
       )}
     </View>
-  ), [debouncedSearchQuery, handleCreateEvent, isAdmin]);
+  ), [debouncedSearchQuery, handleCreateEvent, isAdmin, activeTheme]);
 
   if (!isReady) {
     return (
-      <View className="bg-background flex-1 items-center justify-center">
-        <Text className="text-gray-400 font-rubik">Loading...</Text>
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: themeColors.background }}
+      >
+        <Text className={`${activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400'} font-rubik`}>
+          Loading...
+        </Text>
       </View>
     );
   }
 
   return (
     <PageTransition type="fade">
-      <View className="bg-background flex-1">
+      <View className="flex-1" style={{ backgroundColor: themeColors.background }}>
         <PlatformStatusBar />
         <SafeAreaView className="flex-1" edges={['top']}>
           {/* Screen Reader Announcements */}
@@ -312,7 +358,7 @@ const Home = () => {
             {(categorizedEvents.myEvents.length > 0 || isAdmin) && (
               <View className="mb-6">
                 <View className="px-4 mb-3">
-                  <Text className="text-white font-rubik-bold text-lg">
+                  <Text className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik-bold text-lg`}>
                     My Events ({categorizedEvents.myEvents.length})
                   </Text>
                 </View>
@@ -330,13 +376,22 @@ const Home = () => {
                           pathname: "/(app-screens)/(home)/event-screen" as any,
                           params: { eventId: event.id }
                         })}
-                        className="w-72 bg-gray-800 p-4 rounded-xl border border-gray-700"
+                        className={`w-72 p-4 rounded-xl border ${activeTheme === 'light'
+                          ? 'bg-white border-gray-300'
+                          : 'bg-gray-800 border-gray-700'
+                          }`}
                         activeOpacity={0.8}
                       >
-                        <Text className="text-white font-rubik-semibold text-base mb-2" numberOfLines={1}>
+                        <Text
+                          className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik-semibold text-base mb-2`}
+                          numberOfLines={1}
+                        >
                           {event.title}
                         </Text>
-                        <Text className="text-gray-400 font-rubik text-sm mb-3" numberOfLines={2}>
+                        <Text
+                          className={`${activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400'} font-rubik text-sm mb-3`}
+                          numberOfLines={2}
+                        >
                           {event.description}
                         </Text>
                         <View className="flex-row items-center justify-between">
@@ -360,7 +415,7 @@ const Home = () => {
             {categorizedEvents.attendingEventsData.length > 0 && (
               <View className="mb-6">
                 <View className="px-4 mb-3">
-                  <Text className="text-white font-rubik-bold text-lg">
+                  <Text className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik-bold text-lg`}>
                     Attending ({categorizedEvents.attendingEventsData.length})
                   </Text>
                 </View>
@@ -377,13 +432,22 @@ const Home = () => {
                           pathname: "/(app-screens)/(home)/event-screen" as any,
                           params: { eventId: event.id }
                         })}
-                        className="w-72 bg-gray-800 p-4 rounded-xl border border-gray-700"
+                        className={`w-72 p-4 rounded-xl border ${activeTheme === 'light'
+                          ? 'bg-white border-gray-300'
+                          : 'bg-gray-800 border-gray-700'
+                          }`}
                         activeOpacity={0.8}
                       >
-                        <Text className="text-white font-rubik-semibold text-base mb-2" numberOfLines={1}>
+                        <Text
+                          className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik-semibold text-base mb-2`}
+                          numberOfLines={1}
+                        >
                           {event.title}
                         </Text>
-                        <Text className="text-gray-400 font-rubik text-sm mb-3" numberOfLines={2}>
+                        <Text
+                          className={`${activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400'} font-rubik text-sm mb-3`}
+                          numberOfLines={2}
+                        >
                           by {event.creatorName}
                         </Text>
                         <View className="flex-row items-center justify-between">
@@ -406,7 +470,7 @@ const Home = () => {
             {/* All Events List */}
             <View className="flex-1">
               <View className="px-4 mb-3">
-                <Text className="text-white font-rubik-bold text-lg">
+                <Text className={`${activeTheme === 'light' ? 'text-gray-900' : 'text-white'} font-rubik-bold text-lg`}>
                   {debouncedSearchQuery ? 'Search Results' : 'Discover Events'}
                   {!debouncedSearchQuery && ` (${categorizedEvents.otherEvents.length})`}
                 </Text>

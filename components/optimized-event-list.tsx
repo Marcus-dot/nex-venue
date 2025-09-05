@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { Event } from '@/types/events';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -31,6 +32,7 @@ const EventCard = memo<{
     onPress: (eventId: string) => void;
     onAttend?: (event: Event) => void;
     currentUserId?: string;
+    activeTheme: 'light' | 'dark';
 }>(({
     event,
     isAttending,
@@ -39,7 +41,8 @@ const EventCard = memo<{
     showAttendButton,
     onPress,
     onAttend,
-    currentUserId
+    currentUserId,
+    activeTheme
 }) => {
     const handlePress = useCallback(() => {
         onPress(event.id);
@@ -55,20 +58,30 @@ const EventCard = memo<{
         // Could navigate to attendees screen or show modal
     }, []);
 
+    // Theme-aware styles
+    const cardBg = activeTheme === 'light' ? 'bg-white' : 'bg-gray-800';
+    const cardBorder = activeTheme === 'light' ? 'border-gray-300' : 'border-gray-700';
+    const titleColor = activeTheme === 'light' ? 'text-gray-900' : 'text-white';
+    const subtitleColor = activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400';
+    const descriptionColor = activeTheme === 'light' ? 'text-gray-700' : 'text-gray-300';
+    const actionsBg = activeTheme === 'light' ? 'bg-gray-100' : 'bg-gray-700';
+    const actionsText = activeTheme === 'light' ? 'text-gray-700' : 'text-white';
+    const locationColor = activeTheme === 'light' ? '#6b7280' : '#9CA3AF';
+
     return (
         <TouchableOpacity
             onPress={handlePress}
-            className="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700"
+            className={`${cardBg} p-4 rounded-xl mb-4 border ${cardBorder}`}
             activeOpacity={0.8}
             testID={`event-card-${event.id}`}
         >
             {/* Header */}
             <View className="flex-row justify-between items-start mb-3">
                 <View className="flex-1 pr-3">
-                    <Text className="text-white font-rubik-semibold text-lg mb-1 leading-6" numberOfLines={2}>
+                    <Text className={`${titleColor} font-rubik-semibold text-lg mb-1 leading-6`} numberOfLines={2}>
                         {event.title}
                     </Text>
-                    <Text className="text-gray-400 font-rubik text-sm">
+                    <Text className={`${subtitleColor} font-rubik text-sm`}>
                         by {isCreator ? 'You' : event.creatorName}
                     </Text>
                 </View>
@@ -80,7 +93,7 @@ const EventCard = memo<{
             </View>
 
             {/* Description */}
-            <Text className="text-gray-300 font-rubik text-sm mb-4 leading-5" numberOfLines={3}>
+            <Text className={`${descriptionColor} font-rubik text-sm mb-4 leading-5`} numberOfLines={3}>
                 {event.description}
             </Text>
 
@@ -93,8 +106,8 @@ const EventCard = memo<{
                     </Text>
                 </View>
                 <View className="flex-row items-center">
-                    <Feather name="map-pin" size={14} color="#9CA3AF" />
-                    <Text className="text-gray-400 font-rubik text-sm ml-2 flex-1" numberOfLines={1}>
+                    <Feather name="map-pin" size={14} color={locationColor} />
+                    <Text className={`${subtitleColor} font-rubik text-sm ml-2 flex-1`} numberOfLines={1}>
                         {event.location}
                     </Text>
                 </View>
@@ -104,11 +117,11 @@ const EventCard = memo<{
             <View className="flex-row justify-between items-center">
                 <TouchableOpacity
                     onPress={handleViewAttendees}
-                    className="flex-row items-center bg-gray-700 px-4 py-2 rounded-lg"
+                    className={`flex-row items-center ${actionsBg} px-4 py-2 rounded-lg`}
                     activeOpacity={0.7}
                 >
-                    <Feather name="users" size={16} color="#ffffff" />
-                    <Text className="text-white font-rubik-medium text-sm ml-2">
+                    <Feather name="users" size={16} color={activeTheme === 'light' ? '#374151' : '#ffffff'} />
+                    <Text className={`${actionsText} font-rubik-medium text-sm ml-2`}>
                         {event.attendees.length} attending
                     </Text>
                 </TouchableOpacity>
@@ -117,10 +130,10 @@ const EventCard = memo<{
                     <TouchableOpacity
                         onPress={handleAttend}
                         className={`px-6 py-2 rounded-lg flex-row items-center ${isAttending
-                                ? 'bg-gray-600'
-                                : isProcessing
-                                    ? 'bg-gray-600'
-                                    : 'bg-accent'
+                            ? activeTheme === 'light' ? 'bg-gray-400' : 'bg-gray-600'
+                            : isProcessing
+                                ? activeTheme === 'light' ? 'bg-gray-400' : 'bg-gray-600'
+                                : 'bg-accent'
                             }`}
                         disabled={isAttending || isProcessing}
                         activeOpacity={0.8}
@@ -164,6 +177,12 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
     testID = "event-list"
 }) => {
     const { user } = useAuth();
+    const { activeTheme } = useTheme();
+
+    // Theme-aware colors
+    const loadingTextColor = activeTheme === 'light' ? 'text-gray-600' : 'text-gray-400';
+    const emptyTitleColor = activeTheme === 'light' ? 'text-gray-900' : 'text-white';
+    const emptySubtitleColor = activeTheme === 'light' ? 'text-gray-600' : 'text-gray-500';
 
     // Memoize event navigation handler
     const handleEventPress = useCallback((eventId: string) => {
@@ -199,6 +218,7 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
                 onPress={handleEventPress}
                 onAttend={showAttendButton ? handleAttendEvent : undefined}
                 currentUserId={user?.uid}
+                activeTheme={activeTheme}
             />
         );
     }, [
@@ -207,7 +227,8 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
         processingAttendance,
         showAttendButton,
         handleEventPress,
-        handleAttendEvent
+        handleAttendEvent,
+        activeTheme
     ]);
 
     // Memoize getItemLayout for better performance
@@ -223,7 +244,7 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
             return (
                 <View className="flex-1 justify-center items-center py-20">
                     <ActivityIndicator size="large" color="#ff4306" />
-                    <Text className="text-gray-400 font-rubik mt-4">Loading events...</Text>
+                    <Text className={`${loadingTextColor} font-rubik mt-4`}>Loading events...</Text>
                 </View>
             );
         }
@@ -235,13 +256,13 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
         return (
             <View className="flex-1 justify-center items-center py-20">
                 <Feather name="calendar" size={48} color="#9CA3AF" />
-                <Text className="text-gray-400 font-rubik text-xl mt-4 mb-2">No events found</Text>
-                <Text className="text-gray-500 font-rubik text-center px-8">
+                <Text className={`${emptyTitleColor} font-rubik text-xl mt-4 mb-2`}>No events found</Text>
+                <Text className={`${emptySubtitleColor} font-rubik text-center px-8`}>
                     Check back later or create your own event!
                 </Text>
             </View>
         );
-    }, [loading, EmptyComponent]);
+    }, [loading, EmptyComponent, loadingTextColor, emptyTitleColor, emptySubtitleColor]);
 
     // Memoize footer component for loading more
     const renderFooterComponent = useCallback(() => {
@@ -250,10 +271,10 @@ const OptimizedEventList: React.FC<OptimizedEventListProps> = ({
         return (
             <View className="py-4 items-center">
                 <ActivityIndicator size="small" color="#ff4306" />
-                <Text className="text-gray-400 font-rubik text-sm mt-2">Loading more events...</Text>
+                <Text className={`${loadingTextColor} font-rubik text-sm mt-2`}>Loading more events...</Text>
             </View>
         );
-    }, [loading, events.length]);
+    }, [loading, events.length, loadingTextColor]);
 
     // Memoized FlatList props
     const flatListProps = useMemo(() => ({

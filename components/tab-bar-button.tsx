@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ACCENT_COlOR, CONTAINER_WIDTH, TAB_BAR_ICON_SIZE } from '@/constants';
+import { useTheme } from '@/context/theme-context';
 
 interface TabBarButtonProps {
     onPress: (e: GestureResponderEvent | React.MouseEvent<HTMLAnchorElement>) => void,
@@ -22,9 +23,16 @@ interface TabBarButtonProps {
 }
 
 const TabBarButton = ({ onPress, onLongPress, isFocused, routeName }: TabBarButtonProps) => {
+    const { activeTheme } = useTheme();
     const scale = useSharedValue(1);
     const opacity = useSharedValue(isFocused ? 1 : 0.6);
     const backgroundColor = useSharedValue(isFocused ? 1 : 0);
+
+    // Theme-aware colors
+    const inactiveColor = activeTheme === 'light' ? '#6b7280' : '#9CA3AF';
+    const pressedBackgroundColor = activeTheme === 'light'
+        ? 'rgba(0, 0, 0, 0.05)'
+        : 'rgba(255, 255, 255, 0.1)';
 
     useEffect(() => {
         // Smooth spring animation for background
@@ -72,6 +80,12 @@ const TabBarButton = ({ onPress, onLongPress, isFocused, routeName }: TabBarButt
         ],
     }));
 
+    // Animated style for inactive button press feedback
+    const animatedPressStyle = useAnimatedStyle(() => ({
+        backgroundColor: isFocused ? 'transparent' : pressedBackgroundColor,
+        opacity: scale.value < 1 ? 0.8 : 0,
+    }));
+
     const handlePressIn = () => {
         scale.value = withSpring(0.9, {
             damping: 15,
@@ -111,16 +125,26 @@ const TabBarButton = ({ onPress, onLongPress, isFocused, routeName }: TabBarButt
             style={styles.tabBarItem}
         >
             <View style={styles.innerTabBarItem}>
+                {/* Press Feedback Background for Inactive Buttons */}
+                {!isFocused && (
+                    <Animated.View
+                        style={[
+                            animatedPressStyle,
+                            styles.pressBackgroundCircle
+                        ]}
+                    />
+                )}
+
                 <Animated.View style={animatedIconStyle}>
                     {
                         // @ts-ignore
                         icon[routeName]({
-                            color: isFocused ? "white" : "#9CA3AF"
+                            color: isFocused ? "white" : inactiveColor
                         })
                     }
                 </Animated.View>
 
-                {/* Animated Background */}
+                {/* Animated Background for Active State */}
                 <Animated.View
                     style={[animatedBackgroundStyle, styles.backgroundCircle]}
                 />
@@ -163,6 +187,13 @@ const styles = StyleSheet.create({
         height: '100%',
         borderRadius: CONTAINER_WIDTH / 2,
         zIndex: -1,
+    },
+    pressBackgroundCircle: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        borderRadius: CONTAINER_WIDTH / 2,
+        zIndex: -2,
     },
     activeDot: {
         position: 'absolute',

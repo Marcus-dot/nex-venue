@@ -12,18 +12,42 @@ import LongTextInput from "@/components/long-text-input";
 import { ACCENT_COlOR, ICON_SIZE, SCREEN_HEIGHT, TEXT_SIZE } from "@/constants";
 import { useAuth } from '@/context/auth-context';
 import { usePhoneNumber } from "@/context/phone-number-context";
+import { useTheme } from '@/context/theme-context';
 import { sendVerificationCode } from '@/services/auth';
 import { formatPhoneNumber } from '@/utils/reusable-functions';
 
 const Login = () => {
-
   const { phoneNumber, setPhoneNumber } = usePhoneNumber();
   const { setVerificationId } = useAuth();
+  const { activeTheme } = useTheme();
 
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [isConnected, setIsConnected] = useState(true);
   const [retryAttempts, setRetryAttempts] = useState(0);
+
+  // Theme-aware colors
+  const themeColors = {
+    background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+    surface: activeTheme === 'light' ? '#ffffff' : '#374151',
+    text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+    textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
+    textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
+    accent: '#ff4306',
+    icon: activeTheme === 'light' ? '#374151' : '#ffffff',
+    iconSecondary: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
+    border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    error: '#ef4444',
+    warning: '#f59e0b',
+    warningBackground: activeTheme === 'light' ? '#fef3c7' : '#78350f',
+    warningBorder: activeTheme === 'light' ? '#fbbf24' : '#f59e0b',
+    warningText: activeTheme === 'light' ? '#92400e' : '#fbbf24',
+    retryBackground: activeTheme === 'light' ? '#fef2f2' : '#450a0a',
+    retryBorder: activeTheme === 'light' ? '#fecaca' : '#7f1d1d',
+    retryText: activeTheme === 'light' ? '#dc2626' : '#f87171',
+    supportBackground: activeTheme === 'light' ? '#f0f9ff' : '#0c4a6e',
+    supportText: activeTheme === 'light' ? '#0369a1' : '#7dd3fc'
+  };
 
   // Network monitoring
   useEffect(() => {
@@ -52,7 +76,6 @@ const Login = () => {
   };
 
   const handleSendCode = async () => {
-
     Keyboard.dismiss();
 
     if (!validatePhone(phoneNumber)) {
@@ -71,7 +94,6 @@ const Login = () => {
     const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
 
     try {
-
       setLoading(true)
       setRetryAttempts(prev => prev + 1);
 
@@ -105,50 +127,86 @@ const Login = () => {
   }
 
   return (
-    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, height: SCREEN_HEIGHT }} keyboardShouldPersistTaps="handled" className="bg-background">
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ flexGrow: 1, height: SCREEN_HEIGHT }}
+      keyboardShouldPersistTaps="handled"
+      style={{ backgroundColor: themeColors.background }}
+    >
       <TouchableWithoutFeedback className='w-full h-full' onPress={() => Keyboard.dismiss()}>
-        <SafeAreaView className="w-full h-full bg-background relative">
+        <SafeAreaView className="w-full h-full relative" style={{ backgroundColor: themeColors.background }}>
 
           {/* Network Status */}
           {!isConnected && (
-            <View className="bg-red-600 px-4 py-3 flex-row items-center">
+            <View
+              className="px-4 py-3 flex-row items-center"
+              style={{ backgroundColor: themeColors.error }}
+            >
               <Feather name="wifi-off" size={16} color="white" />
               <Text className="text-white font-rubik-medium text-sm ml-2">No internet connection</Text>
             </View>
           )}
 
-          <BackNav title="Continue with Phone Number" handlePress={() => router.back()} />
+          <BackNav
+            title="Continue with Phone Number"
+            handlePress={() => router.back()}
+            backgroundColor={themeColors.background}
+            textColor={themeColors.text}
+            iconColor={themeColors.icon}
+          />
 
           <View className="w-full h-[92%] flex items-center">
             {/* Enhanced Header */}
             <View className="items-center mb-8 mt-6">
-              <View className="w-20 h-20 bg-accent rounded-full items-center justify-center mb-6">
+              <View
+                className="w-20 h-20 rounded-full items-center justify-center mb-6"
+                style={{ backgroundColor: themeColors.accent }}
+              >
                 <Feather name="phone" size={32} color="white" />
               </View>
-              <Text className="text-white font-rubik-bold text-2xl mb-2 text-center">
+              <Text
+                className="font-rubik-bold text-2xl mb-2 text-center"
+                style={{ color: themeColors.text }}
+              >
                 Enter Your Phone Number
               </Text>
-              <Text style={{ fontSize: TEXT_SIZE * 0.75 }} className="text-gray-400 font-rubik text-center leading-6 max-w-[90%]">
+              <Text
+                style={{ fontSize: TEXT_SIZE * 0.75, color: themeColors.textSecondary }}
+                className="font-rubik text-center leading-6 max-w-[90%]"
+              >
                 We'll send you a verification code to confirm your phone number and get you started.
               </Text>
             </View>
 
             {/* Phone Input with Error Display */}
             <View className="w-full flex items-center">
-              <LongTextInput handleTextChange={(text) => {
-                setPhoneNumber(text);
-                if (phoneError) setPhoneError(''); // Clear error on typing
-              }} text={phoneNumber} type="telephoneNumber" placeholder="+260 77..." />
+              <LongTextInput
+                handleTextChange={(text) => {
+                  setPhoneNumber(text);
+                  if (phoneError) setPhoneError(''); // Clear error on typing
+                }}
+                text={phoneNumber}
+                type="telephoneNumber"
+                placeholder="+260 77..."
+                error={!!phoneError}
+              />
 
               {phoneError ? (
                 <View className="flex-row items-center mt-2 px-6">
-                  <Feather name="alert-circle" size={16} color="#ef4444" />
-                  <Text className="text-red-400 font-rubik text-sm ml-2">{phoneError}</Text>
+                  <Feather name="alert-circle" size={16} color={themeColors.error} />
+                  <Text
+                    className="font-rubik text-sm ml-2"
+                    style={{ color: themeColors.error }}
+                  >
+                    {phoneError}
+                  </Text>
                 </View>
               ) : null}
 
               <View className="px-6 mt-2">
-                <Text className="text-gray-500 font-rubik text-xs">
+                <Text
+                  className="font-rubik text-xs"
+                  style={{ color: themeColors.textTertiary }}
+                >
                   Accepted formats: +260771234567, 0771234567, or 260771234567
                 </Text>
               </View>
@@ -156,10 +214,19 @@ const Login = () => {
 
             {/* Retry Attempts Info */}
             {retryAttempts > 0 && (
-              <View className="bg-yellow-900/20 border border-yellow-600 mx-6 p-3 rounded-lg mt-4">
+              <View
+                className="mx-6 p-3 rounded-lg mt-4 border"
+                style={{
+                  backgroundColor: themeColors.retryBackground,
+                  borderColor: themeColors.retryBorder
+                }}
+              >
                 <View className="flex-row items-center">
-                  <Feather name="alert-triangle" size={16} color="#fbbf24" />
-                  <Text className="text-yellow-400 font-rubik-medium text-sm ml-2">
+                  <Feather name="alert-triangle" size={16} color={themeColors.retryText} />
+                  <Text
+                    className="font-rubik-medium text-sm ml-2"
+                    style={{ color: themeColors.retryText }}
+                  >
                     Attempt {retryAttempts}/3
                   </Text>
                 </View>
@@ -167,14 +234,27 @@ const Login = () => {
             )}
 
             <View className="relative mt-1 w-full flex items-center justify-center">
-              <ActionButton loading={loading} showArrow handlePress={handleSendCode} buttonText="Send Verification Code" />
+              <ActionButton
+                loading={loading}
+                showArrow
+                handlePress={handleSendCode}
+                buttonText="Send Verification Code"
+              />
             </View>
 
-            <TouchableOpacity onPress={() => {
-              router.push("/auth/terms")
-            }} className="w-[90%] mt-5 flex-row flex items-center justify-center flex-wrap">
+            <TouchableOpacity
+              onPress={() => {
+                router.push("/auth/terms")
+              }}
+              className="w-[90%] mt-5 flex-row flex items-center justify-center flex-wrap"
+            >
               <Ionicons name="checkmark-circle-outline" size={ICON_SIZE * 0.5} color={ACCENT_COlOR} />
-              <Text style={{ fontSize: TEXT_SIZE * 0.65 }} className={`font-rubik-medium text-gray-300`}> By continuing, you agree to our </Text>
+              <Text
+                style={{ fontSize: TEXT_SIZE * 0.65, color: themeColors.textSecondary }}
+                className="font-rubik-medium"
+              >
+                By continuing, you agree to our
+              </Text>
               <TouchableOpacity onPress={() => {
                 router.push({
                   pathname: "/auth/terms",
@@ -183,9 +263,19 @@ const Login = () => {
                   }
                 });
               }}>
-                <Text style={{ fontSize: TEXT_SIZE * 0.65 }} className="text-accent font-rubik-semibold">Terms of Service</Text>
+                <Text
+                  style={{ fontSize: TEXT_SIZE * 0.65, color: themeColors.accent }}
+                  className="font-rubik-semibold"
+                >
+                  Terms of Service
+                </Text>
               </TouchableOpacity>
-              <Text style={{ fontSize: TEXT_SIZE * 0.65 }} className={`text-gray-300 font-rubik-medium`}> and </Text>
+              <Text
+                style={{ fontSize: TEXT_SIZE * 0.65, color: themeColors.textSecondary }}
+                className="font-rubik-medium"
+              >
+                and
+              </Text>
               <TouchableOpacity onPress={() => {
                 router.push({
                   pathname: "/auth/terms",
@@ -194,13 +284,23 @@ const Login = () => {
                   }
                 });
               }}>
-                <Text style={{ fontSize: TEXT_SIZE * 0.65 }} className="text-accent font-rubik-semibold">Privacy Policy</Text>
+                <Text
+                  style={{ fontSize: TEXT_SIZE * 0.65, color: themeColors.accent }}
+                  className="font-rubik-semibold"
+                >
+                  Privacy Policy
+                </Text>
               </TouchableOpacity>
             </TouchableOpacity>
 
             {/* Support Contact */}
             <View className="items-center mt-8">
-              <Text className="text-gray-500 font-rubik text-xs mb-2">Having trouble?</Text>
+              <Text
+                className="font-rubik text-xs mb-2"
+                style={{ color: themeColors.textTertiary }}
+              >
+                Having trouble?
+              </Text>
               <TouchableOpacity onPress={() => {
                 Alert.alert(
                   'Contact Support',
@@ -208,10 +308,14 @@ const Login = () => {
                   [{ text: 'OK' }]
                 );
               }}>
-                <Text className="text-accent font-rubik-medium text-sm">Contact Support</Text>
+                <Text
+                  className="font-rubik-medium text-sm"
+                  style={{ color: themeColors.accent }}
+                >
+                  Contact Support
+                </Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </SafeAreaView>
       </TouchableWithoutFeedback>

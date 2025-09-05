@@ -8,10 +8,12 @@ import ActionButton from '@/components/action-button';
 import LongTextInput from '@/components/long-text-input';
 import { TEXT_SIZE } from '@/constants';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { UserRole } from '@/types/auth';
 
 const ProfileSetup = () => {
   const { updateUserProfile } = useAuth();
+  const { activeTheme } = useTheme();
 
   const [fullName, setFullName] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | 'other' | 'prefer_not_to_say' | ''>('');
@@ -20,6 +22,38 @@ const ProfileSetup = () => {
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [saveAttempts, setSaveAttempts] = useState(0);
+
+  // Theme-aware colors
+  const themeColors = {
+    background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+    surface: activeTheme === 'light' ? '#ffffff' : '#374151',
+    surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
+    text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+    textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
+    textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
+    accent: '#ff4306',
+    icon: activeTheme === 'light' ? '#374151' : '#ffffff',
+    border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+    input: activeTheme === 'light' ? '#f9fafb' : '#374151',
+    inputBorder: activeTheme === 'light' ? '#d1d5db' : '#6b7280',
+    inputText: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+    error: '#ef4444',
+    success: '#10b981',
+    warning: '#f59e0b',
+    adminBackground: activeTheme === 'light' ? '#fef3c7' : '#78350f',
+    adminBorder: activeTheme === 'light' ? '#fbbf24' : '#f59e0b',
+    adminText: activeTheme === 'light' ? '#92400e' : '#fbbf24',
+    adminIcon: activeTheme === 'light' ? '#f59e0b' : '#fbbf24',
+    attemptBackground: activeTheme === 'light' ? '#fed7aa' : '#9a3412',
+    attemptBorder: activeTheme === 'light' ? '#fb923c' : '#ea580c',
+    attemptText: activeTheme === 'light' ? '#c2410c' : '#fb923c',
+    genderSelected: activeTheme === 'light' ? '#dbeafe' : '#1e3a8a',
+    genderSelectedBorder: activeTheme === 'light' ? '#3b82f6' : '#2563eb',
+    genderSelectedText: activeTheme === 'light' ? '#1e40af' : '#60a5fa',
+    roleSelected: activeTheme === 'light' ? '#dcfce7' : '#14532d',
+    roleSelectedBorder: activeTheme === 'light' ? '#22c55e' : '#16a34a',
+    roleSelectedText: activeTheme === 'light' ? '#15803d' : '#4ade80'
+  };
 
   // Admin access code - in a real app, this should be more secure
   const ADMIN_ACCESS_CODE = 'GRALIX2025';
@@ -185,10 +219,13 @@ const ProfileSetup = () => {
   }) => (
     <View className="mb-4">
       <View className="flex-row items-center mb-2">
-        <Text style={{ fontSize: TEXT_SIZE * 0.9 }} className="text-white font-rubik-medium">
+        <Text
+          style={{ fontSize: TEXT_SIZE * 0.9, color: themeColors.text }}
+          className="font-rubik-medium"
+        >
           {label}
         </Text>
-        {required && <Text className="text-accent ml-1">*</Text>}
+        {required && <Text style={{ color: themeColors.accent }} className="ml-1">*</Text>}
       </View>
       <LongTextInput
         text={value}
@@ -205,15 +242,24 @@ const ProfileSetup = () => {
         width='100%'
         placeholder={placeholder}
         max={maxLength}
+        error={!!error}
       />
       {error && (
         <View className="flex-row items-center mt-2">
-          <Feather name="alert-circle" size={14} color="#ef4444" />
-          <Text className="text-red-400 font-rubik text-sm ml-1">{error}</Text>
+          <Feather name="alert-circle" size={14} color={themeColors.error} />
+          <Text
+            className="font-rubik text-sm ml-1"
+            style={{ color: themeColors.error }}
+          >
+            {error}
+          </Text>
         </View>
       )}
       {maxLength && value.length > maxLength * 0.8 && (
-        <Text className="text-gray-500 font-rubik text-xs mt-1">
+        <Text
+          className="font-rubik text-xs mt-1"
+          style={{ color: themeColors.textTertiary }}
+        >
           {value.length}/{maxLength} characters
         </Text>
       )}
@@ -223,10 +269,13 @@ const ProfileSetup = () => {
   const GenderSelector = () => (
     <View className="mb-6">
       <View className="flex-row items-center mb-3">
-        <Text style={{ fontSize: TEXT_SIZE * 0.9 }} className="text-white font-rubik-medium">
+        <Text
+          style={{ fontSize: TEXT_SIZE * 0.9, color: themeColors.text }}
+          className="font-rubik-medium"
+        >
           Gender
         </Text>
-        <Text className="text-accent ml-1">*</Text>
+        <Text style={{ color: themeColors.accent }} className="ml-1">*</Text>
       </View>
       <View className="flex-row flex-wrap gap-3">
         {[
@@ -236,10 +285,15 @@ const ProfileSetup = () => {
         ].map((option) => (
           <TouchableOpacity
             key={option.value}
-            className={`px-4 py-3 rounded-xl border-2 min-w-[100px] ${gender === option.value
-                ? 'bg-accent border-accent'
-                : 'bg-gray-800 border-gray-600'
-              }`}
+            className={`px-4 py-3 rounded-xl border-2 min-w-[100px]`}
+            style={{
+              backgroundColor: gender === option.value
+                ? themeColors.genderSelected
+                : themeColors.surface,
+              borderColor: gender === option.value
+                ? themeColors.genderSelectedBorder
+                : themeColors.border
+            }}
             onPress={() => {
               setGender(option.value as any);
               // Clear gender error
@@ -250,9 +304,13 @@ const ProfileSetup = () => {
             activeOpacity={0.8}
           >
             <Text
-              className={`${gender === option.value ? "text-white" : "text-gray-300"
-                } font-rubik text-center`}
-              style={{ fontSize: TEXT_SIZE * 0.85 }}
+              className="font-rubik text-center"
+              style={{
+                fontSize: TEXT_SIZE * 0.85,
+                color: gender === option.value
+                  ? themeColors.genderSelectedText
+                  : themeColors.text
+              }}
             >
               {option.label}
             </Text>
@@ -261,8 +319,13 @@ const ProfileSetup = () => {
       </View>
       {formErrors.gender && (
         <View className="flex-row items-center mt-2">
-          <Feather name="alert-circle" size={14} color="#ef4444" />
-          <Text className="text-red-400 font-rubik text-sm ml-1">{formErrors.gender}</Text>
+          <Feather name="alert-circle" size={14} color={themeColors.error} />
+          <Text
+            className="font-rubik text-sm ml-1"
+            style={{ color: themeColors.error }}
+          >
+            {formErrors.gender}
+          </Text>
         </View>
       )}
     </View>
@@ -270,13 +333,23 @@ const ProfileSetup = () => {
 
   const RoleSelector = () => (
     <View className="mb-6">
-      <Text style={{ fontSize: TEXT_SIZE * 0.9 }} className="text-white font-rubik-medium mb-3">
+      <Text
+        style={{ fontSize: TEXT_SIZE * 0.9, color: themeColors.text }}
+        className="font-rubik-medium mb-3"
+      >
         Account Type
       </Text>
       <View className="flex-row gap-3">
         <TouchableOpacity
-          className={`flex-1 px-4 py-4 rounded-xl border-2 ${role === 'user' ? 'bg-accent border-accent' : 'bg-gray-800 border-gray-600'
-            }`}
+          className={`flex-1 px-4 py-4 rounded-xl border-2`}
+          style={{
+            backgroundColor: role === 'user'
+              ? themeColors.roleSelected
+              : themeColors.surface,
+            borderColor: role === 'user'
+              ? themeColors.roleSelectedBorder
+              : themeColors.border
+          }}
           onPress={() => setRole('user')}
           activeOpacity={0.8}
         >
@@ -284,20 +357,44 @@ const ProfileSetup = () => {
             <Feather
               name="user"
               size={24}
-              color={role === 'user' ? "white" : "#9CA3AF"}
+              color={role === 'user'
+                ? themeColors.roleSelectedText
+                : themeColors.textTertiary
+              }
             />
-            <Text className={`${role === 'user' ? "text-white" : "text-gray-300"} font-rubik text-center mt-2`}>
+            <Text
+              className="font-rubik text-center mt-2"
+              style={{
+                color: role === 'user'
+                  ? themeColors.roleSelectedText
+                  : themeColors.text
+              }}
+            >
               Regular User
             </Text>
-            <Text className={`${role === 'user' ? "text-white" : "text-gray-400"} font-rubik text-xs text-center mt-1`}>
+            <Text
+              className="font-rubik text-xs text-center mt-1"
+              style={{
+                color: role === 'user'
+                  ? themeColors.roleSelectedText
+                  : themeColors.textSecondary
+              }}
+            >
               Discover & attend events
             </Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
-          className={`flex-1 px-4 py-4 rounded-xl border-2 ${role === 'admin' ? 'bg-accent border-accent' : 'bg-gray-800 border-gray-600'
-            }`}
+          className={`flex-1 px-4 py-4 rounded-xl border-2`}
+          style={{
+            backgroundColor: role === 'admin'
+              ? themeColors.accent
+              : themeColors.surface,
+            borderColor: role === 'admin'
+              ? themeColors.accent
+              : themeColors.border
+          }}
           onPress={() => setRole('admin')}
           activeOpacity={0.8}
         >
@@ -305,12 +402,22 @@ const ProfileSetup = () => {
             <Feather
               name="shield"
               size={24}
-              color={role === 'admin' ? "white" : "#9CA3AF"}
+              color={role === 'admin' ? "white" : themeColors.textTertiary}
             />
-            <Text className={`${role === 'admin' ? "text-white" : "text-gray-300"} font-rubik text-center mt-2`}>
+            <Text
+              className="font-rubik text-center mt-2"
+              style={{
+                color: role === 'admin' ? "white" : themeColors.text
+              }}
+            >
               Admin
             </Text>
-            <Text className={`${role === 'admin' ? "text-white" : "text-gray-400"} font-rubik text-xs text-center mt-1`}>
+            <Text
+              className="font-rubik text-xs text-center mt-1"
+              style={{
+                color: role === 'admin' ? "white" : themeColors.textSecondary
+              }}
+            >
               Manage events & agendas
             </Text>
           </View>
@@ -324,14 +431,26 @@ const ProfileSetup = () => {
 
     return (
       <View className="mb-6">
-        <View className="bg-yellow-900/20 border border-yellow-600 p-4 rounded-xl mb-4">
+        <View
+          className="p-4 rounded-xl mb-4 border"
+          style={{
+            backgroundColor: themeColors.adminBackground,
+            borderColor: themeColors.adminBorder
+          }}
+        >
           <View className="flex-row items-center mb-2">
-            <Feather name="shield" size={16} color="#fbbf24" />
-            <Text className="text-yellow-400 font-rubik-medium text-sm ml-2">
+            <Feather name="shield" size={16} color={themeColors.adminIcon} />
+            <Text
+              className="font-rubik-medium text-sm ml-2"
+              style={{ color: themeColors.adminText }}
+            >
               Administrator Access
             </Text>
           </View>
-          <Text className="text-yellow-300 font-rubik text-xs">
+          <Text
+            className="font-rubik text-xs"
+            style={{ color: themeColors.adminText }}
+          >
             Admin privileges include creating event agendas, managing live agenda items, and advanced event administration features.
           </Text>
         </View>
@@ -345,7 +464,10 @@ const ProfileSetup = () => {
           required
           maxLength={20}
         />
-        <Text className="text-gray-400 font-rubik text-xs mt-1">
+        <Text
+          className="font-rubik text-xs mt-1"
+          style={{ color: themeColors.textSecondary }}
+        >
           Contact your organization administrator for the access code
         </Text>
       </View>
@@ -356,15 +478,27 @@ const ProfileSetup = () => {
     if (saveAttempts === 0) return null;
 
     return (
-      <View className="bg-orange-900/20 border border-orange-600 p-3 rounded-xl mb-4">
+      <View
+        className="p-3 rounded-xl mb-4 border"
+        style={{
+          backgroundColor: themeColors.attemptBackground,
+          borderColor: themeColors.attemptBorder
+        }}
+      >
         <View className="flex-row items-center">
-          <Feather name="alert-triangle" size={16} color="#fb923c" />
-          <Text className="text-orange-400 font-rubik-medium text-sm ml-2">
+          <Feather name="alert-triangle" size={16} color={themeColors.attemptText} />
+          <Text
+            className="font-rubik-medium text-sm ml-2"
+            style={{ color: themeColors.attemptText }}
+          >
             Save attempt {saveAttempts}/{MAX_SAVE_ATTEMPTS}
           </Text>
         </View>
         {saveAttempts >= 2 && (
-          <Text className="text-orange-300 font-rubik text-xs mt-1">
+          <Text
+            className="font-rubik text-xs mt-1"
+            style={{ color: themeColors.attemptText }}
+          >
             If you continue to have issues, please contact support for assistance.
           </Text>
         )}
@@ -374,68 +508,86 @@ const ProfileSetup = () => {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-background"
+      className="flex-1"
+      style={{ backgroundColor: themeColors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-        <SafeAreaView className='flex-1 bg-background' edges={['top']}>
-          <ScrollView
-            className="flex-1 px-6"
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-          >
-            {/* Header */}
-            <View className="items-center mb-8 mt-8">
-              <View className="w-20 h-20 bg-accent rounded-full items-center justify-center mb-6">
-                <Feather name="user-plus" size={32} color="white" />
-              </View>
-              <Text style={{ fontSize: TEXT_SIZE * 1.3 }} className="text-white font-rubik-bold text-center mb-2">
-                Complete Your Profile
-              </Text>
-              <Text style={{ fontSize: TEXT_SIZE * 0.85 }} className="text-gray-400 font-rubik text-center max-w-sm leading-6">
-                Tell us a bit about yourself to personalize your NexVenue experience
-              </Text>
+      <SafeAreaView className='flex-1' edges={['top']}>
+        <ScrollView
+          className="flex-1 px-6"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always"
+        >
+          {/* Header */}
+          <View className="items-center mb-8 mt-8">
+            <View
+              className="w-20 h-20 rounded-full items-center justify-center mb-6"
+              style={{ backgroundColor: themeColors.accent }}
+            >
+              <Feather name="user-plus" size={32} color="white" />
             </View>
+            <Text
+              style={{ fontSize: TEXT_SIZE * 1.3, color: themeColors.text }}
+              className="font-rubik-bold text-center mb-2"
+            >
+              Complete Your Profile
+            </Text>
+            <Text
+              style={{ fontSize: TEXT_SIZE * 0.85, color: themeColors.textSecondary }}
+              className="font-rubik text-center max-w-sm leading-6"
+            >
+              Tell us a bit about yourself to personalize your NexVenue experience
+            </Text>
+          </View>
 
-            {/* Attempt Warning */}
-            <AttemptWarning />
+          {/* Attempt Warning */}
+          <AttemptWarning />
 
-            {/* Form */}
-            <FormInput
-              label="Full Name"
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Enter your full name"
-              error={formErrors.fullName}
-              required
-              maxLength={50}
-            />
+          {/* Form */}
+          <FormInput
+            label="Full Name"
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Enter your full name"
+            error={formErrors.fullName}
+            required
+            maxLength={50}
+          />
 
-            <GenderSelector />
+          <GenderSelector />
 
-            <RoleSelector />
+          <RoleSelector />
 
-            <AdminCodeInput />
+          <AdminCodeInput />
 
-            {/* Complete Button */}
-            <ActionButton
-              loading={loading}
-              handlePress={handleCompleteProfile}
-              buttonText='Complete Profile'
-              showArrow
-              width="100%"
-            />
+          {/* Complete Button */}
+          <ActionButton
+            loading={loading}
+            handlePress={handleCompleteProfile}
+            buttonText='Complete Profile'
+            showArrow
+            width="100%"
+          />
 
-            {/* Support Link */}
-            <View className="items-center mt-6 mb-8">
-              <Text className="text-gray-500 font-rubik text-xs mb-2">
-                Need help setting up your profile?
+          {/* Support Link */}
+          <View className="items-center mt-6 mb-8">
+            <Text
+              className="font-rubik text-xs mb-2"
+              style={{ color: themeColors.textTertiary }}
+            >
+              Need help setting up your profile?
+            </Text>
+            <TouchableOpacity onPress={showSupportInfo} activeOpacity={0.7}>
+              <Text
+                className="font-rubik-medium text-sm"
+                style={{ color: themeColors.accent }}
+              >
+                Contact Support
               </Text>
-              <TouchableOpacity onPress={showSupportInfo} activeOpacity={0.7}>
-                <Text className="text-accent font-rubik-medium text-sm">Contact Support</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </SafeAreaView>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };

@@ -1,5 +1,6 @@
 import BackNav from '@/components/back-nav';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { chatService } from '@/services/chat';
 import { DirectConversation } from '@/types/chat';
 import { useRouter } from 'expo-router';
@@ -10,10 +11,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const MessagesList = () => {
     const router = useRouter();
     const { user } = useAuth();
+    const { activeTheme } = useTheme();
 
     const [conversations, setConversations] = useState<DirectConversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Theme-aware colors
+    const themeColors = {
+        background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+        surface: activeTheme === 'light' ? '#ffffff' : '#374151',
+        surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
+        text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
+        textSecondary: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
+        textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
+        border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
+        emptyStateText: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
+        avatarBackground: '#ff4306'
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -85,10 +100,18 @@ const MessagesList = () => {
         return (
             <TouchableOpacity
                 onPress={() => openDirectChat(conversation)}
-                className="bg-gray-800 p-4 rounded-xl mb-3 border border-gray-700"
+                className="p-4 rounded-xl mb-3 border"
+                style={{
+                    backgroundColor: themeColors.surface,
+                    borderColor: themeColors.border
+                }}
+                activeOpacity={0.8}
             >
                 <View className="flex-row items-start">
-                    <View className="w-12 h-12 bg-accent rounded-full items-center justify-center mr-3">
+                    <View
+                        className="w-12 h-12 rounded-full items-center justify-center mr-3"
+                        style={{ backgroundColor: themeColors.avatarBackground }}
+                    >
                         <Text className="text-white font-rubik-semibold">
                             {otherParticipantPhone?.slice(-1) || 'U'}
                         </Text>
@@ -96,11 +119,17 @@ const MessagesList = () => {
 
                     <View className="flex-1">
                         <View className="flex-row justify-between items-center mb-1">
-                            <Text className="text-white font-rubik-semibold text-lg">
+                            <Text
+                                className="font-rubik-semibold text-lg"
+                                style={{ color: themeColors.text }}
+                            >
                                 {otherParticipantName}
                             </Text>
                             {lastMessage && (
-                                <Text className="text-gray-400 font-rubik text-xs">
+                                <Text
+                                    className="font-rubik text-xs"
+                                    style={{ color: themeColors.textTertiary }}
+                                >
                                     {formatTime(lastMessage.timestamp)}
                                 </Text>
                             )}
@@ -108,13 +137,17 @@ const MessagesList = () => {
 
                         {lastMessage ? (
                             <Text
-                                className="text-gray-400 font-rubik text-sm"
+                                className="font-rubik text-sm"
+                                style={{ color: themeColors.textSecondary }}
                                 numberOfLines={2}
                             >
                                 {lastMessage.senderId === user.uid ? 'You: ' : ''}{lastMessage.message}
                             </Text>
                         ) : (
-                            <Text className="text-gray-500 font-rubik text-sm italic">
+                            <Text
+                                className="font-rubik text-sm italic"
+                                style={{ color: themeColors.textTertiary }}
+                            >
                                 Start a conversation...
                             </Text>
                         )}
@@ -126,17 +159,42 @@ const MessagesList = () => {
 
     if (loading) {
         return (
-            <View className="bg-background flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color="#ff4306" />
-                <Text className="text-white font-rubik mt-4">Loading messages...</Text>
+            <View
+                className="flex-1 items-center justify-center"
+                style={{ backgroundColor: themeColors.background }}
+            >
+                <SafeAreaView className="flex-1" edges={['top']}>
+                    <BackNav
+                        title="Direct Messages"
+                        handlePress={() => router.back()}
+                        backgroundColor={themeColors.background}
+                        textColor={themeColors.text}
+                        iconColor={themeColors.text}
+                    />
+                    <View className="flex-1 items-center justify-center">
+                        <ActivityIndicator size="large" color="#ff4306" />
+                        <Text
+                            className="font-rubik mt-4"
+                            style={{ color: themeColors.text }}
+                        >
+                            Loading messages...
+                        </Text>
+                    </View>
+                </SafeAreaView>
             </View>
         );
     }
 
     return (
-        <View className="bg-background flex-1">
-            <SafeAreaView className="flex-1">
-                <BackNav title="Direct Messages" handlePress={() => router.back()} />
+        <View className="flex-1" style={{ backgroundColor: themeColors.background }}>
+            <SafeAreaView className="flex-1" edges={['top']}>
+                <BackNav
+                    title="Direct Messages"
+                    handlePress={() => router.back()}
+                    backgroundColor={themeColors.background}
+                    textColor={themeColors.text}
+                    iconColor={themeColors.text}
+                />
 
                 <ScrollView
                     className="flex-1 px-4"
@@ -146,6 +204,8 @@ const MessagesList = () => {
                             refreshing={refreshing}
                             onRefresh={handleRefresh}
                             tintColor="#ff4306"
+                            title="Pull to refresh"
+                            titleColor={themeColors.text}
                         />
                     }
                 >
@@ -156,10 +216,16 @@ const MessagesList = () => {
                             ))
                         ) : (
                             <View className="items-center justify-center py-20">
-                                <Text className="text-gray-400 font-rubik text-xl mb-4">
+                                <Text
+                                    className="font-rubik text-xl mb-4"
+                                    style={{ color: themeColors.emptyStateText }}
+                                >
                                     💬 No conversations yet
                                 </Text>
-                                <Text className="text-gray-500 font-rubik text-center px-8">
+                                <Text
+                                    className="font-rubik text-center px-8"
+                                    style={{ color: themeColors.textTertiary }}
+                                >
                                     Start connecting with event attendees to begin private conversations!
                                 </Text>
                             </View>

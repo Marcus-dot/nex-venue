@@ -1,5 +1,3 @@
-// File: components/agenda/agenda-item.tsx
-
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { AgendaItem as AgendaItemType } from '@/types/agenda';

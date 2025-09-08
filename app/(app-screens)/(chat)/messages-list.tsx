@@ -27,7 +27,7 @@ const MessagesList = () => {
         textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
         border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
         emptyStateText: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
-        avatarBackground: '#ff4306'
+        avatarBackground: '#e85c29'
     };
 
     useEffect(() => {
@@ -172,7 +172,7 @@ const MessagesList = () => {
                         iconColor={themeColors.text}
                     />
                     <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator size="large" color="#ff4306" />
+                        <ActivityIndicator size="large" color="#e85c29" />
                         <Text
                             className="font-rubik mt-4"
                             style={{ color: themeColors.text }}
@@ -203,7 +203,7 @@ const MessagesList = () => {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={handleRefresh}
-                            tintColor="#ff4306"
+                            tintColor="#e85c29"
                             title="Pull to refresh"
                             titleColor={themeColors.text}
                         />

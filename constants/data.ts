@@ -6,6 +6,7 @@ export const appOnboardingPageData = [
     },
     {
         backgroundColor: "#ff4306",
+        // "#e85c29", --- IGNORE ---
         title: "Discover Events You’ll Love",
         subtitle: "From conferences to expos, find, follow, and join with ease."
     },

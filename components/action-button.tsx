@@ -34,7 +34,7 @@ const ActionButton = ({
 
     // Theme-aware colors
     const themeColors = {
-        primaryBackground: '#e85c29', // Updated from '#ff4306'
+        primaryBackground: '#e85c29',
         primaryText: '#ffffff',
         secondaryBackground: activeTheme === 'light' ? '#f3f4f6' : '#374151',
         secondaryBorder: activeTheme === 'light' ? '#d1d5db' : '#6b7280',

@@ -45,7 +45,7 @@ const OptimizedImage = memo<OptimizedImageProps>(({
         text: activeTheme === 'light' ? '#6b7280' : '#d1d5db',
         textSecondary: activeTheme === 'light' ? '#9ca3af' : '#9ca3af',
         icon: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
-        retryBackground: activeTheme === 'light' ? '#3b82f6' : '#ff4306',
+        retryBackground: activeTheme === 'light' ? '#3b82f6' : '#e85c29',
         retryText: activeTheme === 'light' ? '#ffffff' : '#ffffff'
     };
 
@@ -88,7 +88,7 @@ const OptimizedImage = memo<OptimizedImageProps>(({
                 { backgroundColor: themeColors.background }
             ]}
         >
-            <ActivityIndicator size="large" color="#ff4306" />
+            <ActivityIndicator size="large" color="#e85c29" />
             <Text
                 className="font-rubik text-sm mt-2"
                 style={{ color: themeColors.text }}

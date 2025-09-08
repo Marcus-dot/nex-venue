@@ -256,7 +256,7 @@ const Events = () => {
 
       <View className="space-y-2 mb-4">
         <View className="flex-row items-center">
-          <Feather name="calendar" size={14} color="#ff4306" />
+          <Feather name="calendar" size={14} color="#e85c29" />
           <Text className="text-accent font-rubik-medium text-sm ml-2">
             {event.date} at {event.time}
           </Text>
@@ -532,7 +532,7 @@ const Events = () => {
               className="px-4 py-2 rounded-lg"
               style={{ backgroundColor: themeColors.surface }}
             >
-              <ActivityIndicator size="small" color="#ff4306" />
+              <ActivityIndicator size="small" color="#e85c29" />
             </View>
           </View>
           <LoadingSkeleton />
@@ -557,7 +557,7 @@ const Events = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#ff4306"
+            tintColor="#e85c29"
             title="Pull to refresh"
             titleColor={themeColors.text}
           />

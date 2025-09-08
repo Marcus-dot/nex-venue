@@ -36,8 +36,8 @@ const Settings = () => {
         comingSoonBackground: activeTheme === 'light' ? '#f3f4f6' : '#374151',
         comingSoonBorder: activeTheme === 'light' ? '#d1d5db' : '#6b7280',
         comingSoonText: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
-        selectedBackground: activeTheme === 'light' ? '#ff4306' : '#ff4306',
-        selectedBorder: activeTheme === 'light' ? '#ff4306' : '#ff4306',
+        selectedBackground: activeTheme === 'light' ? '#e85c29' : '#e85c29',
+        selectedBorder: activeTheme === 'light' ? '#e85c29' : '#e85c29',
         unselectedBackground: activeTheme === 'light' ? '#f9fafb' : '#374151',
         unselectedBorder: activeTheme === 'light' ? '#e5e7eb' : '#6b7280',
         iconBackground: activeTheme === 'light' ? '#f3f4f6' : '#4b5563',
@@ -301,7 +301,7 @@ const Settings = () => {
                             }}
                         >
                             <View className="flex-row items-center mb-3">
-                                <Feather name="monitor" size={18} color="#ff4306" />
+                                <Feather name="monitor" size={18} color="#e85c29" />
                                 <Text
                                     className="font-rubik-medium ml-2"
                                     style={{ color: themeColors.text }}

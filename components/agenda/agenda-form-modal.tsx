@@ -383,12 +383,12 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                         key={cat.value}
                                         onPress={() => setCategory(cat.value)}
                                         className={`px-3 py-2 rounded-lg border-2 ${category === cat.value
-                                                ? 'bg-accent border-accent'
-                                                : ''
+                                            ? 'bg-accent border-accent'
+                                            : ''
                                             }`}
                                         style={{
-                                            backgroundColor: category === cat.value ? '#ff4306' : themeColors.input,
-                                            borderColor: category === cat.value ? '#ff4306' : themeColors.inputBorder
+                                            backgroundColor: category === cat.value ? '#e85c29' : themeColors.input,
+                                            borderColor: category === cat.value ? '#e85c29' : themeColors.inputBorder
                                         }}
                                     >
                                         <Text
@@ -412,8 +412,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 className={`p-3 rounded-lg border-2 flex-row justify-between items-center ${isBreak ? 'bg-accent border-accent' : ''
                                     }`}
                                 style={{
-                                    backgroundColor: isBreak ? '#ff4306' : themeColors.input,
-                                    borderColor: isBreak ? '#ff4306' : themeColors.inputBorder
+                                    backgroundColor: isBreak ? '#e85c29' : themeColors.input,
+                                    borderColor: isBreak ? '#e85c29' : themeColors.inputBorder
                                 }}
                             >
                                 <Text

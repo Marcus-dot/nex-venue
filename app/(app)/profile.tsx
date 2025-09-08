@@ -113,7 +113,7 @@ const Profile = () => {
     value,
     subtitle,
     icon,
-    color = "#ff4306"
+    color = "#e85c29"
   }: {
     title: string;
     value: number;
@@ -369,7 +369,7 @@ const Profile = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#ff4306"
+            tintColor="#e85c29"
             title="Pull to refresh"
             titleColor={themeColors.text}
           />
@@ -433,7 +433,7 @@ const Profile = () => {
               }}
             >
               <View className="flex-row items-center mb-3">
-                <Feather name="shield" size={20} color="#ff4306" />
+                <Feather name="shield" size={20} color="#e85c29" />
                 <Text className="text-accent font-rubik-bold text-lg ml-2">
                   Admin Privileges
                 </Text>
@@ -451,7 +451,7 @@ const Profile = () => {
                   'Real-time agenda updates for attendees'
                 ].map((privilege, index) => (
                   <View key={index} className="flex-row items-center">
-                    <Feather name="check-circle" size={14} color="#ff4306" />
+                    <Feather name="check-circle" size={14} color="#e85c29" />
                     <Text
                       className="font-rubik text-sm ml-2 flex-1 leading-5"
                       style={{ color: themeColors.textSecondary }}
@@ -477,7 +477,7 @@ const Profile = () => {
                 icon="calendar"
                 title="Events Created"
                 value={stats.eventsCreated}
-                color="#ff4306"
+                color="#e85c29"
               />
               <StatCard
                 icon="heart"
@@ -581,7 +581,7 @@ const Profile = () => {
               borderColor: themeColors.border
             }}
           >
-            <ActivityIndicator size="large" color="#ff4306" />
+            <ActivityIndicator size="large" color="#e85c29" />
             <Text
               className="font-rubik-medium mt-4"
               style={{ color: themeColors.text }}

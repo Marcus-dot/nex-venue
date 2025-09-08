@@ -63,7 +63,7 @@ const Welcome = () => {
     <SafeAreaView className="flex-1 bg-background">
       {/* bg gradient - I went with brand orange fading to dark, i dont know when i dicieded that */}
       <LinearGradient
-        colors={["rgba(255,67,6,1)", "rgba(22,22,22,1)"]}
+        colors={["rgba(232,92,41,1)", "rgba(34,37,81,1)"]}
         locations={[0, 1]} // fade midpoint
         style={{
           position: "absolute",
@@ -114,7 +114,7 @@ const Welcome = () => {
             style={{
               borderRadius: 15,
               overflow: "hidden", // so shimmer stays inside button
-              backgroundColor: "#FF4306",
+              backgroundColor: "#e85c29",
               paddingVertical: 18,
               alignItems: "center",
               justifyContent: "center",

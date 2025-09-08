@@ -1,6 +1,3 @@
-
-// File: components/chat/message-item.tsx
-
 import { useAuth } from '@/context/auth-context';
 import { chatService } from '@/services/chat';
 import { ChatMessage } from '@/types/chat';

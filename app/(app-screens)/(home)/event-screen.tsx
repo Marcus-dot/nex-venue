@@ -317,7 +317,7 @@ const EventScreen = () => {
               className="absolute inset-0 items-center justify-center"
               style={{ backgroundColor: themeColors.imageBackground }}
             >
-              <ActivityIndicator size="large" color="#ff4306" />
+              <ActivityIndicator size="large" color="#e85c29" />
               <Text
                 className="font-rubik text-sm mt-2"
                 style={{ color: themeColors.textSecondary }}
@@ -532,7 +532,7 @@ const EventScreen = () => {
         className="flex-1 items-center justify-center"
         style={{ backgroundColor: themeColors.background }}
       >
-        <ActivityIndicator size="large" color="#ff4306" />
+        <ActivityIndicator size="large" color="#e85c29" />
         <Text
           className="font-rubik mt-4"
           style={{ color: themeColors.text }}
@@ -723,7 +723,7 @@ const EventScreen = () => {
               <View className="space-y-4">
                 <View className="flex-row items-center">
                   <View className="w-10 h-10 bg-accent/20 rounded-full items-center justify-center mr-3">
-                    <Feather name="calendar" size={18} color="#ff4306" />
+                    <Feather name="calendar" size={18} color="#e85c29" />
                   </View>
                   <View>
                     <Text
@@ -743,7 +743,7 @@ const EventScreen = () => {
 
                 <View className="flex-row items-center">
                   <View className="w-10 h-10 bg-accent/20 rounded-full items-center justify-center mr-3">
-                    <Feather name="clock" size={18} color="#ff4306" />
+                    <Feather name="clock" size={18} color="#e85c29" />
                   </View>
                   <View>
                     <Text
@@ -763,7 +763,7 @@ const EventScreen = () => {
 
                 <View className="flex-row items-center">
                   <View className="w-10 h-10 bg-accent/20 rounded-full items-center justify-center mr-3">
-                    <Feather name="map-pin" size={18} color="#ff4306" />
+                    <Feather name="map-pin" size={18} color="#e85c29" />
                   </View>
                   <View className="flex-1">
                     <Text
@@ -783,7 +783,7 @@ const EventScreen = () => {
 
                 <View className="flex-row items-center">
                   <View className="w-10 h-10 bg-accent/20 rounded-full items-center justify-center mr-3">
-                    <Feather name="users" size={18} color="#ff4306" />
+                    <Feather name="users" size={18} color="#e85c29" />
                   </View>
                   <View>
                     <Text
@@ -804,7 +804,7 @@ const EventScreen = () => {
                 {event.imageUrl && (
                   <View className="flex-row items-center">
                     <View className="w-10 h-10 bg-accent/20 rounded-full items-center justify-center mr-3">
-                      <Feather name="image" size={18} color="#ff4306" />
+                      <Feather name="image" size={18} color="#e85c29" />
                     </View>
                     <View>
                       <Text
@@ -891,7 +891,7 @@ const EventScreen = () => {
 
             {attendeesLoading ? (
               <View className="items-center py-8">
-                <ActivityIndicator size="large" color="#ff4306" />
+                <ActivityIndicator size="large" color="#e85c29" />
                 <Text
                   className="font-rubik mt-2"
                   style={{ color: themeColors.textSecondary }}
@@ -945,7 +945,7 @@ const EventScreen = () => {
                     borderColor: themeColors.border
                   }}
                 >
-                  <Feather name="message-circle" size={48} color="#ff4306" />
+                  <Feather name="message-circle" size={48} color="#e85c29" />
                   <Text
                     className="font-rubik-bold text-xl mb-4 mt-4"
                     style={{ color: themeColors.text }}

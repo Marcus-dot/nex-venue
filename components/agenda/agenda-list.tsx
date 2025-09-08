@@ -200,7 +200,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                 <RefreshControl
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
-                    tintColor="#ff4306"
+                    tintColor="#e85c29"
                 />
             }
         >

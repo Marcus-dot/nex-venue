@@ -49,7 +49,7 @@ const EventChat = () => {
         inputBorder: activeTheme === 'light' ? '#d1d5db' : '#6b7280',
         inputText: activeTheme === 'light' ? '#1f2937' : '#ffffff',
         sendButton: activeTheme === 'light' ? '#9ca3af' : '#6b7280',
-        sendButtonActive: '#ff4306',
+        sendButtonActive: '#e85c29',
         emptyStateText: activeTheme === 'light' ? '#6b7280' : '#9ca3af'
     };
 
@@ -140,7 +140,7 @@ const EventChat = () => {
                 className="flex-1 items-center justify-center"
                 style={{ backgroundColor: themeColors.background }}
             >
-                <ActivityIndicator size="large" color="#ff4306" />
+                <ActivityIndicator size="large" color="#e85c29" />
                 <Text
                     className="font-rubik mt-4"
                     style={{ color: themeColors.text }}
@@ -235,8 +235,8 @@ const EventChat = () => {
                             onPress={sendMessage}
                             disabled={!inputMessage.trim() || sending}
                             className={`w-12 h-12 rounded-full items-center justify-center ${inputMessage.trim() && !sending
-                                    ? 'bg-accent'
-                                    : ''
+                                ? 'bg-accent'
+                                : ''
                                 }`}
                             style={{
                                 backgroundColor: inputMessage.trim() && !sending

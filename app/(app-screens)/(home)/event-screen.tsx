@@ -61,7 +61,16 @@ const EventScreen = () => {
     tabBorder: activeTheme === 'light' ? '#e5e7eb' : '#374151',
     imageBackground: activeTheme === 'light' ? '#f3f4f6' : '#374151',
     attendeeCardBg: activeTheme === 'light' ? '#f9fafb' : '#374151',
-    locationColor: activeTheme === 'light' ? '#6b7280' : '#9CA3AF'
+    locationColor: activeTheme === 'light' ? '#6b7280' : '#9CA3AF',
+    // Premium tab colors
+    tabContainerBg: activeTheme === 'light' ? '#ffffff' : '#222551',
+    tabContainerBorder: activeTheme === 'light' ? 'rgba(229, 231, 235, 0.6)' : 'rgba(75, 85, 99, 0.6)',
+    tabShadow: activeTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(0, 0, 0, 0.25)',
+    tabInactive: activeTheme === 'light' ? '#f8fafc' : '#374151',
+    tabInactiveText: activeTheme === 'light' ? '#64748b' : '#94a3b8',
+    tabActiveGradientStart: '#e85c29',
+    tabActiveGradientEnd: '#dc2626',
+    tabHover: activeTheme === 'light' ? '#f1f5f9' : '#475569'
   };
 
   const fetchEventDetails = async () => {
@@ -607,70 +616,83 @@ const EventScreen = () => {
           )}
         </View>
 
-        {/* Tab Navigation */}
-        <View
-          className="flex-row rounded-lg p-1 mb-4 mx-4 border"
-          style={{
-            backgroundColor: themeColors.tabBackground,
-            borderColor: themeColors.tabBorder
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => setActiveTab('details')}
-            className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'details' ? 'bg-accent' : ''}`}
+        {/* Premium Tab Navigation */}
+        <View className="mx-4 mb-6 mt-4">
+          <View
+            className="rounded-2xl p-1.5"
+            style={{
+              backgroundColor: themeColors.tabContainerBg,
+              borderWidth: 1,
+              borderColor: themeColors.tabContainerBorder,
+              shadowColor: themeColors.tabShadow,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 1,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
           >
-            <Text
-              className={`text-center font-rubik-medium text-sm ${activeTab === 'details' ? 'text-white' : ''
-                }`}
-              style={{
-                color: activeTab === 'details' ? 'white' : themeColors.textSecondary
-              }}
-            >
-              Details
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveTab('agenda')}
-            className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'agenda' ? 'bg-accent' : ''}`}
-          >
-            <Text
-              className={`text-center font-rubik-medium text-sm ${activeTab === 'agenda' ? 'text-white' : ''
-                }`}
-              style={{
-                color: activeTab === 'agenda' ? 'white' : themeColors.textSecondary
-              }}
-            >
-              Agenda
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveTab('attendees')}
-            className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'attendees' ? 'bg-accent' : ''}`}
-          >
-            <Text
-              className={`text-center font-rubik-medium text-sm ${activeTab === 'attendees' ? 'text-white' : ''
-                }`}
-              style={{
-                color: activeTab === 'attendees' ? 'white' : themeColors.textSecondary
-              }}
-            >
-              Attendees
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveTab('chat')}
-            className={`flex-1 py-2 px-3 rounded-lg ${activeTab === 'chat' ? 'bg-accent' : ''}`}
-          >
-            <Text
-              className={`text-center font-rubik-medium text-sm ${activeTab === 'chat' ? 'text-white' : ''
-                }`}
-              style={{
-                color: activeTab === 'chat' ? 'white' : themeColors.textSecondary
-              }}
-            >
-              Chat
-            </Text>
-          </TouchableOpacity>
+            <View className="flex-row">
+              {[
+                { key: 'details', label: 'Details', icon: 'info' },
+                { key: 'agenda', label: 'Agenda', icon: 'clock' },
+                { key: 'attendees', label: 'Attendees', icon: 'users' },
+                { key: 'chat', label: 'Chat', icon: 'message-circle' }
+              ].map((tab, index) => {
+                const isActive = activeTab === tab.key;
+                const isLast = index === 3;
+
+                return (
+                  <TouchableOpacity
+                    key={tab.key}
+                    onPress={() => setActiveTab(tab.key as any)}
+                    className={`flex-1 py-3 px-3 rounded-xl ${!isLast ? 'mr-1' : ''}`}
+                    style={{
+                      backgroundColor: isActive
+                        ? themeColors.tabActiveGradientStart
+                        : themeColors.tabInactive,
+                      ...(isActive && {
+                        shadowColor: '#e85c29',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 4,
+                        elevation: 3,
+                      })
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View className="flex-row items-center justify-center">
+                      <Feather
+                        name={tab.icon as any}
+                        size={16}
+                        color={isActive ? 'white' : themeColors.tabInactiveText}
+                        style={{ marginRight: 6 }}
+                      />
+                      <Text
+                        className={`font-rubik-semibold text-sm ${isActive ? 'text-white' : ''
+                          }`}
+                        style={{
+                          color: isActive ? 'white' : themeColors.tabInactiveText
+                        }}
+                      >
+                        {tab.label}
+                      </Text>
+                    </View>
+
+                    {/* Active indicator */}
+                    {isActive && (
+                      <View
+                        className="absolute -bottom-0.5 left-1/2 w-8 h-0.5 rounded-full"
+                        style={{
+                          backgroundColor: 'white',
+                          transform: [{ translateX: -16 }]
+                        }}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         </View>
 
         {/* Tab Content */}

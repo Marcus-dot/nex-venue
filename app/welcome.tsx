@@ -1,70 +1,61 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
-import { useEffect, useRef } from "react";
-import { Animated, Easing, Pressable, SafeAreaView, Text, View } from "react-native";
-
+import { useRef /*, useEffect*/ } from "react"; // removed shimmer hooks for now
+import { /*Animated, Easing,*/ Pressable, SafeAreaView, Text, View } from "react-native";
 
 import { TEXT_SIZE } from "@/constants";
-
 
 const Welcome = () => {
   const router = useRouter();
 
-
-  // this anim controls the shimmer slide for the button
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
+  // shimmer animation value (disabled)
+  // const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   // just keeping a ref to control/play the lottie if needed
   const lottieRef = useRef(null);
 
-
   const handlePhoneLogin = () => {
-    // just moving to login page...
     router.push("/auth/login");
   };
 
-
+  /*
+  // shimmer loop (disabled)
   useEffect(() => {
-    // delaying shimmer start so the lottie gets its spotlight first
     const shimmerTimeout = setTimeout(() => {
       Animated.loop(
         Animated.sequence([
           Animated.timing(shimmerAnim, {
             toValue: 1,
-            duration: 2000, // smooth glide
+            duration: 2000,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
           Animated.timing(shimmerAnim, {
             toValue: 0,
-            duration: 0, // reset instantly
+            duration: 0,
             useNativeDriver: true,
           }),
         ])
       ).start();
     }, 1000);
 
-
-    // cleanup if user bounces off page quick
     return () => clearTimeout(shimmerTimeout);
   }, []);
 
-
-  // shimmer slide left to right
+  // shimmer translateX (disabled)
   const translateX = shimmerAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [-200, 200],
   });
-
+  */
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* bg gradient - I went with brand orange fading to dark, i dont know when i dicieded that */}
+      {/* bg gradient */}
       <LinearGradient
         colors={["rgba(232,92,41,1)", "rgba(34,37,81,1)"]}
-        locations={[0, 1]} // fade midpoint
+        locations={[0, 1]}
         style={{
           position: "absolute",
           top: 0,
@@ -74,8 +65,7 @@ const Welcome = () => {
         }}
       />
 
-
-      {/* top branding - logo text + tagline */}
+      {/* top branding */}
       <View className="w-full flex items-center mt-12">
         <Text className="text-5xl text-white font-extrabold tracking-tight">
           NexVenue
@@ -85,35 +75,28 @@ const Welcome = () => {
         </Text>
       </View>
 
-
-
-
-
-
       {/* main center animation */}
       <View className="flex-1 justify-center items-center">
         <LottieView
           ref={lottieRef}
           source={require("@/assets/animations/welcome.json")}
           autoPlay
-          loop={true} // right now looping forever, could change to false if we want it once
+          loop={true}
           style={{ width: 250, height: 250 }}
         />
       </View>
 
-
-      {/* call to action button w/ shimmer */}
+      {/* call to action button */}
       <View className="mb-16 px-6">
         <Pressable
           onPress={handlePhoneLogin}
           style={({ pressed }) => ({
-            transform: [{ scale: pressed ? 0.96 : 1 }], // lil press feedback
+            transform: [{ scale: pressed ? 0.96 : 1 }],
           })}
         >
           <View
             style={{
               borderRadius: 15,
-              overflow: "hidden", // so shimmer stays inside button
               backgroundColor: "#e85c29",
               paddingVertical: 18,
               alignItems: "center",
@@ -124,8 +107,8 @@ const Welcome = () => {
               Continue with Phone Number
             </Text>
 
-
-            {/* shimmer overlay - moving white highlight */}
+            {/*
+            // shimmer overlay (disabled)
             <Animated.View
               style={{
                 position: "absolute",
@@ -142,10 +125,10 @@ const Welcome = () => {
                 style={{ flex: 1 }}
               />
             </Animated.View>
+            */}
           </View>
         </Pressable>
       </View>
-
 
       {/* footer text */}
       <View className="items-center mb-4">
@@ -160,7 +143,4 @@ const Welcome = () => {
   );
 };
 
-
 export default Welcome;
-
-

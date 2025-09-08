@@ -15,7 +15,7 @@ export type UserProfile = {
   createdAt: number;
   profileComplete?: boolean;
   avatar: string | null;
-  // Presence fields for chat
+  // Presence fields for chat...
   isOnline?: boolean;
   lastSeen?: number;
 }

@@ -20,7 +20,7 @@ interface LongTextInputProps {
 
 const LongTextInput = ({
   placeholder,
-  width,
+  width = "90%", // Default width
   text,
   type,
   handleTextChange,
@@ -100,6 +100,21 @@ const LongTextInput = ({
     }
   };
 
+  // Calculate width properly
+  const getWidth = () => {
+    if (width && width.endsWith('%')) {
+      // Convert percentage to number based on screen width
+      const percent = parseFloat(width.replace('%', ''));
+      // Use Dimensions API to get screen width
+      const { width: screenWidth } = require('react-native').Dimensions.get('window');
+      return (screenWidth * percent) / 100;
+    } else if (width && !isNaN(Number(width))) {
+      return Number(width);
+    } else {
+      return RFPercentage(90);
+    }
+  };
+
   return (
     <TextInput
       style={{
@@ -109,17 +124,19 @@ const LongTextInput = ({
         backgroundColor: error ? themeColors.errorBackground : themeColors.background,
         color: themeColors.text,
         borderColor: error ? themeColors.errorBorder : themeColors.border,
-        width: width
-          ? width.endsWith('%')
-            ? undefined // Ignore percentage strings for RN style, handle via container if needed
-            : Number(width)
-          : RFPercentage(90), // Use RFPercentage or a default number value
-        opacity: !editable ? 0.6 : 1
+        borderWidth: 1,
+        width: getWidth(),
+        opacity: !editable ? 0.6 : 1,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 8,
+        fontFamily: 'Rubik-Bold',
+        // Ensure text is visible
+        minHeight: RFPercentage(6.5),
       }}
-      className={`font-rubik-bold px-4 py-3 rounded-lg border`}
       placeholder={placeholder}
       placeholderTextColor={error ? themeColors.errorPlaceholder : themeColors.placeholder}
-      value={text}
+      value={text || ''}
       onChangeText={handleTextChange}
       textContentType={textContentType}
       keyboardType={keyboardType}
@@ -142,6 +159,10 @@ const LongTextInput = ({
       // Enhanced accessibility for screen readers
       importantForAccessibility="yes"
       accessibilityLiveRegion={error ? "polite" : "none"}
+      // Ensure input responds to touches
+      selectTextOnFocus={true}
+      // Clear any potential styling conflicts
+      underlineColorAndroid="transparent"
     />
   );
 };

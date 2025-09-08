@@ -13,7 +13,7 @@ interface AgendaListProps {
     onEditItem?: (item: AgendaItemType) => void;
 }
 
-const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onEditItem }) => {
+const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onEditItem }: AgendaListProps) => {
     const { isAdmin, user } = useAuth();
     const { activeTheme } = useTheme();
     const [agendaItems, setAgendaItems] = useState<AgendaItemType[]>([]);
@@ -22,7 +22,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
 
     // Theme-aware colors
     const themeColors = {
-        background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
+        background: activeTheme === 'light' ? '#D8D9D4' : '#ffffff',
         surface: activeTheme === 'light' ? '#ffffff' : '#374151',
         surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
         text: activeTheme === 'light' ? '#1f2937' : '#ffffff',
@@ -512,75 +512,17 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                         </View>
                     </View>
 
-                    {/* Premium Timeline Items */}
-                    <View className="relative">
-                        {/* Timeline line */}
-                        <View
-                            className="absolute left-6 top-0 bottom-0 w-0.5 rounded-full"
-                            style={{ backgroundColor: themeColors.timelineColor }}
-                        />
-
+                    {/* Clean Agenda Items */}
+                    <View>
                         {items.map((item, index) => (
-                            <View key={item.id} className="relative">
-                                {/* Timeline dot */}
-                                <View
-                                    className="absolute left-4 top-6 w-4 h-4 rounded-full border-2 z-10"
-                                    style={{
-                                        backgroundColor: currentAgendaItem === item.id
-                                            ? themeColors.timelineAccent
-                                            : themeColors.surface,
-                                        borderColor: currentAgendaItem === item.id
-                                            ? themeColors.timelineAccent
-                                            : themeColors.timelineColor,
-                                    }}
-                                >
-                                    {currentAgendaItem === item.id && (
-                                        <View
-                                            className="w-2 h-2 rounded-full absolute top-1 left-1"
-                                            style={{ backgroundColor: 'white' }}
-                                        />
-                                    )}
-                                </View>
-
-                                {/* Agenda Item with enhanced spacing */}
-                                <View className="ml-12 mb-6">
-                                    <AgendaItem
-                                        item={item}
-                                        isCurrentItem={currentAgendaItem === item.id}
-                                        onEdit={isAdmin ? onEditItem : undefined}
-                                        onDelete={isAdmin ? handleDeleteItem : undefined}
-                                        onSetCurrent={isAdmin ? handleSetCurrentItem : undefined}
-                                    />
-                                </View>
-
-                                {/* Premium time gap indicator */}
-                                {index < items.length - 1 && (
-                                    <View className="ml-12 mb-4 flex-row items-center">
-                                        <View
-                                            className="flex-1 h-px"
-                                            style={{ backgroundColor: themeColors.timelineColor, opacity: 0.3 }}
-                                        />
-                                        <View
-                                            className="px-3 py-1 rounded-full mx-3"
-                                            style={{ backgroundColor: themeColors.surface }}
-                                        >
-                                            <Text
-                                                className="font-rubik text-xs"
-                                                style={{ color: themeColors.textTertiary }}
-                                            >
-                                                {(() => {
-                                                    const currentEnd = item.endTime;
-                                                    const nextStart = items[index + 1].startTime;
-                                                    return `${currentEnd} → ${nextStart}`;
-                                                })()}
-                                            </Text>
-                                        </View>
-                                        <View
-                                            className="flex-1 h-px"
-                                            style={{ backgroundColor: themeColors.timelineColor, opacity: 0.3 }}
-                                        />
-                                    </View>
-                                )}
+                            <View key={item.id} className="mb-6">
+                                <AgendaItem
+                                    item={item}
+                                    isCurrentItem={currentAgendaItem === item.id}
+                                    onEdit={isAdmin ? onEditItem : undefined}
+                                    onDelete={isAdmin ? handleDeleteItem : undefined}
+                                    onSetCurrent={isAdmin ? handleSetCurrentItem : undefined}
+                                />
                             </View>
                         ))}
                     </View>

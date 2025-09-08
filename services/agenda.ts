@@ -1,7 +1,7 @@
 import { AgendaItem } from '@/types/agenda';
 import firestore from '@react-native-firebase/firestore';
 
-// Helper function to convert date + time to sortable timestamp
+// Helper function to convert date + time to sortable timestamp for ordaaa
 const parseDateTime = (date: string, time: string): number => {
     try {
         // Parse the date (expecting formats like "2025-10-02" or "Oct 2, 2025")
@@ -48,7 +48,7 @@ const parseDateTime = (date: string, time: string): number => {
     }
 };
 
-// Helper function to sort agenda items by date and time
+// Function to sort agenda items by date and time
 const sortAgendaItems = (items: AgendaItem[]): AgendaItem[] => {
     return items.sort((a, b) => {
         const timestampA = parseDateTime(a.date, a.startTime);

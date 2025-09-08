@@ -32,7 +32,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         dividerColor: activeTheme === 'light' ? '#e5e7eb' : '#374151',
 
         // Premium colors
-        headerGradientStart: activeTheme === 'light' ? '#ffffff' : '#222551',
+        headerGradientStart: activeTheme === 'light' ? '#ffffff' : '#161616',
         headerGradientEnd: activeTheme === 'light' ? '#f8fafc' : '#1e293b',
         headerBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
         headerShadow: activeTheme === 'light' ? 'rgba(0, 0, 0, 0.06)' : 'rgba(0, 0, 0, 0.25)',
@@ -41,7 +41,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         statsCardBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.6)' : 'rgba(71, 85, 105, 0.4)',
         statsAccent: '#e85c29',
 
-        dateHeaderBg: activeTheme === 'light' ? '#ffffff' : '#222551',
+        dateHeaderBg: activeTheme === 'light' ? '#ffffff' : '#161616',
         dateHeaderBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
         dateGradient: activeTheme === 'light'
             ? 'linear-gradient(90deg, rgba(232, 92, 41, 0.1) 0%, rgba(248, 113, 113, 0.05) 100%)'
@@ -53,7 +53,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         skeletonBg: activeTheme === 'light' ? '#f1f5f9' : '#334155',
         skeletonShimmer: activeTheme === 'light' ? '#e2e8f0' : '#475569',
 
-        emptyStateBg: activeTheme === 'light' ? '#ffffff' : '#222551',
+        emptyStateBg: activeTheme === 'light' ? '#ffffff' : '#161616',
         emptyStateIcon: activeTheme === 'light' ? '#cbd5e1' : '#64748b',
         emptyStateAccent: '#e85c29',
     };

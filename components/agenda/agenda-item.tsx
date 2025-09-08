@@ -26,7 +26,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     // Theme-aware colors with premium enhancements
     const themeColors = {
         // Base colors
-        background: activeTheme === 'light' ? '#D8D9D4' : '#222551',
+        background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
         surface: activeTheme === 'light' ? '#ffffff' : '#374151',
         surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
         text: activeTheme === 'light' ? '#1f2937' : '#ffffff',

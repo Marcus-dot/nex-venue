@@ -62,7 +62,7 @@ const EventScreen = () => {
     imageBackground: activeTheme === 'light' ? '#f3f4f6' : '#374151',
     attendeeCardBg: activeTheme === 'light' ? '#f9fafb' : '#374151',
     locationColor: activeTheme === 'light' ? '#6b7280' : '#9CA3AF',
-    // Premium tab colors
+    // Tab colors
     tabContainerBg: activeTheme === 'light' ? '#ffffff' : '#222551',
     tabContainerBorder: activeTheme === 'light' ? 'rgba(229, 231, 235, 0.6)' : 'rgba(75, 85, 99, 0.6)',
     tabShadow: activeTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(0, 0, 0, 0.25)',
@@ -616,22 +616,30 @@ const EventScreen = () => {
           )}
         </View>
 
-        {/* Premium Tab Navigation */}
-        <View className="mx-4 mb-6 mt-4">
-          <View
-            className="rounded-2xl p-1.5"
-            style={{
-              backgroundColor: themeColors.tabContainerBg,
-              borderWidth: 1,
-              borderColor: themeColors.tabContainerBorder,
-              shadowColor: themeColors.tabShadow,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 1,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
+        {/* Tab Navigation - Now Horizontally Scrollable */}
+        <View className="mb-6 mt-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+            bounces={false}
+            decelerationRate="fast"
+            snapToAlignment="center"
           >
-            <View className="flex-row">
+            <View
+              className="rounded-2xl p-1.5 flex-row"
+              style={{
+                backgroundColor: themeColors.tabContainerBg,
+                borderWidth: 1,
+                borderColor: themeColors.tabContainerBorder,
+                shadowColor: themeColors.tabShadow,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 1,
+                shadowRadius: 8,
+                elevation: 4,
+                minWidth: 320, // Ensure minimum width for proper layout
+              }}
+            >
               {[
                 { key: 'details', label: 'Details', icon: 'info' },
                 { key: 'agenda', label: 'Agenda', icon: 'clock' },
@@ -645,11 +653,12 @@ const EventScreen = () => {
                   <TouchableOpacity
                     key={tab.key}
                     onPress={() => setActiveTab(tab.key as any)}
-                    className={`flex-1 py-3 px-3 rounded-xl ${!isLast ? 'mr-1' : ''}`}
+                    className={`py-3 px-4 rounded-xl ${!isLast ? 'mr-1' : ''}`}
                     style={{
                       backgroundColor: isActive
                         ? themeColors.tabActiveGradientStart
                         : themeColors.tabInactive,
+                      minWidth: 75, // Minimum width to prevent text wrapping
                       ...(isActive && {
                         shadowColor: '#e85c29',
                         shadowOffset: { width: 0, height: 2 },
@@ -663,16 +672,16 @@ const EventScreen = () => {
                     <View className="flex-row items-center justify-center">
                       <Feather
                         name={tab.icon as any}
-                        size={16}
+                        size={14} // Slightly smaller icon for better fit
                         color={isActive ? 'white' : themeColors.tabInactiveText}
-                        style={{ marginRight: 6 }}
+                        style={{ marginRight: 4 }} // Reduced margin
                       />
                       <Text
-                        className={`font-rubik-semibold text-sm ${isActive ? 'text-white' : ''
-                          }`}
+                        className={`font-rubik-semibold text-sm ${isActive ? 'text-white' : ''}`}
                         style={{
                           color: isActive ? 'white' : themeColors.tabInactiveText
                         }}
+                        numberOfLines={1} // Prevent text wrapping
                       >
                         {tab.label}
                       </Text>
@@ -681,10 +690,10 @@ const EventScreen = () => {
                     {/* Active indicator */}
                     {isActive && (
                       <View
-                        className="absolute -bottom-0.5 left-1/2 w-8 h-0.5 rounded-full"
+                        className="absolute -bottom-0.5 left-1/2 w-6 h-0.5 rounded-full"
                         style={{
                           backgroundColor: 'white',
-                          transform: [{ translateX: -16 }]
+                          transform: [{ translateX: -12 }]
                         }}
                       />
                     )}
@@ -692,7 +701,7 @@ const EventScreen = () => {
                 );
               })}
             </View>
-          </View>
+          </ScrollView>
         </View>
 
         {/* Tab Content */}

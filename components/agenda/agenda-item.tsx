@@ -23,9 +23,9 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     const { isAdmin } = useAuth();
     const { activeTheme } = useTheme();
 
-    // Theme-aware colors with premium enhancements
+    // Colors that work in both themes
     const themeColors = {
-        // Base colors
+        // Basic colors
         background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
         surface: activeTheme === 'light' ? '#ffffff' : '#374151',
         surfaceSecondary: activeTheme === 'light' ? '#f3f4f6' : '#1f2937',
@@ -34,7 +34,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         textTertiary: activeTheme === 'light' ? '#9ca3af' : '#9CA3AF',
         border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
 
-        // Premium card variations
+        // Card styles
         cardDefault: activeTheme === 'light' ? '#ffffff' : '#374151',
         cardDefaultBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
         cardDefaultShadow: activeTheme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(0, 0, 0, 0.2)',
@@ -44,7 +44,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         breakBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.6)' : 'rgba(71, 85, 105, 0.4)',
         breakIcon: activeTheme === 'light' ? '#94a3b8' : '#64748b',
 
-        // Current/Live item styling
+        // Live item highlights
         currentBackground: activeTheme === 'light'
             ? 'linear-gradient(135deg, rgba(232, 92, 41, 0.08) 0%, rgba(248, 113, 113, 0.05) 100%)'
             : 'linear-gradient(135deg, rgba(232, 92, 41, 0.15) 0%, rgba(248, 113, 113, 0.08) 100%)',
@@ -65,7 +65,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         categoryAlpha: activeTheme === 'light' ? '0.15' : '0.25',
     };
 
-    // Premium category styling with better colors
+    // Styling with better colors
     const getCategoryConfig = (category?: string) => {
         const configs = {
             keynote: {
@@ -178,7 +178,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                 }
             ]}
         >
-            {/* Premium gradient overlay for current items */}
+            {/*Gradient overlay for current items */}
             {isCurrentItem && (
                 <View
                     className="absolute inset-0 rounded-2xl opacity-80"

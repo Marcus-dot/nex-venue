@@ -17,7 +17,7 @@ const Discover = () => {
   const [attendingEvents, setAttendingEvents] = useState<Set<string>>(new Set());
   const [processingAttendance, setProcessingAttendance] = useState<Set<string>>(new Set());
 
-  // Theme-aware colors
+  // Colors that change based on light/dark mode
   const themeColors = {
     background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
     surface: activeTheme === 'light' ? '#ffffff' : '#374151',

@@ -9,6 +9,71 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Refres
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Event } from "../../types/events";
 
+// ✅ FIXED: FormInput component moved OUTSIDE of Events component
+const FormInput = ({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  multiline = false,
+  error,
+  required = false,
+  themeColors // Pass theme colors as props
+}: {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  multiline?: boolean;
+  error?: string;
+  required?: boolean;
+  themeColors: any;
+}) => (
+  <View className="mb-4">
+    <View className="flex-row items-center mb-2">
+      <Text
+        className="font-rubik-medium text-base"
+        style={{ color: themeColors.text }}
+      >
+        {label}
+      </Text>
+      {required && <Text className="text-accent ml-1">*</Text>}
+    </View>
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={themeColors.textTertiary}
+      style={{
+        fontSize: 16,
+        height: multiline ? 80 : 50,
+        textAlignVertical: multiline ? 'top' : 'center',
+        fontFamily: 'Rubik-Regular',
+        backgroundColor: themeColors.input,
+        color: themeColors.text,
+        borderColor: error ? '#ef4444' : themeColors.inputBorder
+      }}
+      className={`px-4 py-3 rounded-lg border ${error ? 'border-red-500' : ''}`}
+      multiline={multiline}
+      numberOfLines={multiline ? 4 : 1}
+      autoCorrect={true}
+      autoCapitalize="sentences"
+      returnKeyType={multiline ? "default" : "next"}
+      blurOnSubmit={false}
+      keyboardType="default"
+      clearButtonMode="while-editing"
+      selectTextOnFocus={false}
+      contextMenuHidden={false}
+    />
+    {error && (
+      <View className="flex-row items-center mt-2">
+        <Feather name="alert-circle" size={14} color="#ef4444" />
+        <Text className="text-red-400 font-rubik text-sm ml-1">{error}</Text>
+      </View>
+    )}
+  </View>
+);
+
 const Events = () => {
   const { toggle } = useLocalSearchParams();
   let initialToggle: string | null = Array.isArray(toggle) ? toggle[0] : toggle;
@@ -144,19 +209,27 @@ const Events = () => {
 
     setCreating(true);
     try {
-      const eventData = {
+      // Base event data (required fields)
+      const eventData: any = {
         title: title.trim(),
         description: description.trim(),
         date: date.trim(),
         time: time.trim(),
         location: location.trim(),
-        imageUrl: imageUrl.trim() || undefined,
-        imageDescription: imageDescription.trim() || undefined,
         creatorId: user.uid,
         creatorName: userProfile.phoneNumber || 'Anonymous',
         attendees: [],
         createdAt: Date.now(),
       };
+
+      // Only add optional field if it has a values..
+      if (imageUrl.trim()) {
+        eventData.imageUrl = imageUrl.trim();
+      }
+
+      if (imageDescription.trim()) {
+        eventData.imageDescription = imageDescription.trim();
+      }
 
       const docRef = await firestore().collection('events').add(eventData);
 
@@ -451,68 +524,6 @@ const Events = () => {
     );
   };
 
-  const FormInput = ({
-    label,
-    value,
-    onChangeText,
-    placeholder,
-    multiline = false,
-    error,
-    required = false
-  }: {
-    label: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    placeholder: string;
-    multiline?: boolean;
-    error?: string;
-    required?: boolean;
-  }) => (
-    <View className="mb-4">
-      <View className="flex-row items-center mb-2">
-        <Text
-          className="font-rubik-medium text-base"
-          style={{ color: themeColors.text }}
-        >
-          {label}
-        </Text>
-        {required && <Text className="text-accent ml-1">*</Text>}
-      </View>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={themeColors.textTertiary}
-        style={{
-          fontSize: 16,
-          height: multiline ? 80 : 50,
-          textAlignVertical: multiline ? 'top' : 'center',
-          fontFamily: 'Rubik-Regular',
-          backgroundColor: themeColors.input,
-          color: themeColors.text,
-          borderColor: error ? '#ef4444' : themeColors.inputBorder
-        }}
-        className={`px-4 py-3 rounded-lg border ${error ? 'border-red-500' : ''}`}
-        multiline={multiline}
-        numberOfLines={multiline ? 4 : 1}
-        autoCorrect={true}
-        autoCapitalize="sentences"
-        returnKeyType={multiline ? "default" : "next"}
-        blurOnSubmit={false}
-        keyboardType="default"
-        clearButtonMode="while-editing"
-        selectTextOnFocus={false}
-        contextMenuHidden={false}
-      />
-      {error && (
-        <View className="flex-row items-center mt-2">
-          <Feather name="alert-circle" size={14} color="#ef4444" />
-          <Text className="text-red-400 font-rubik text-sm ml-1">{error}</Text>
-        </View>
-      )}
-    </View>
-  );
-
   if (loading) {
     return (
       <SafeAreaView
@@ -692,6 +703,7 @@ const Events = () => {
                     placeholder="Enter a compelling event title"
                     error={formErrors.title}
                     required
+                    themeColors={themeColors}
                   />
 
                   <FormInput
@@ -702,6 +714,7 @@ const Events = () => {
                     multiline
                     error={formErrors.description}
                     required
+                    themeColors={themeColors}
                   />
 
                   <View className="flex-row space-x-4 mb-4">
@@ -713,6 +726,7 @@ const Events = () => {
                         placeholder="e.g., Jan 25, 2024"
                         error={formErrors.date}
                         required
+                        themeColors={themeColors}
                       />
                     </View>
                     <View className="flex-1">
@@ -723,6 +737,7 @@ const Events = () => {
                         placeholder="e.g., 7:00 PM"
                         error={formErrors.time}
                         required
+                        themeColors={themeColors}
                       />
                     </View>
                   </View>
@@ -734,6 +749,7 @@ const Events = () => {
                     placeholder="Where will this event take place?"
                     error={formErrors.location}
                     required
+                    themeColors={themeColors}
                   />
 
                   <FormInput
@@ -741,6 +757,7 @@ const Events = () => {
                     value={imageUrl}
                     onChangeText={setImageUrl}
                     placeholder="https://... (optional)"
+                    themeColors={themeColors}
                   />
 
                   {imageUrl.trim() && (
@@ -749,6 +766,7 @@ const Events = () => {
                       value={imageDescription}
                       onChangeText={setImageDescription}
                       placeholder="Describe the image for accessibility"
+                      themeColors={themeColors}
                     />
                   )}
 

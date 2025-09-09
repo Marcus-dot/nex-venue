@@ -616,92 +616,100 @@ const EventScreen = () => {
           )}
         </View>
 
-        {/* Tab Navigation - Now Horizontally Scrollable */}
-        <View className="mb-6 mt-4">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-            bounces={false}
-            decelerationRate="fast"
-            snapToAlignment="center"
+        {/* Tab Navigation - Responsive Container with Scrollable Tabs */}
+        <View className="mb-6 mt-4 px-4">
+          <View
+            className="w-full rounded-2xl p-1.5 border"
+            style={{
+              backgroundColor: themeColors.tabContainerBg,
+              borderColor: themeColors.tabContainerBorder,
+              shadowColor: themeColors.tabShadow,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 1,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
           >
-            <View
-              className="rounded-2xl p-1.5 flex-row"
-              style={{
-                backgroundColor: themeColors.tabContainerBg,
-                borderWidth: 1,
-                borderColor: themeColors.tabContainerBorder,
-                shadowColor: themeColors.tabShadow,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 1,
-                shadowRadius: 8,
-                elevation: 4,
-                minWidth: 320, // Ensure minimum width for proper layout
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              bounces={false}
+              decelerationRate="fast"
+              snapToAlignment="center"
+              contentContainerStyle={{
+                paddingHorizontal: 4,
+                minWidth: '100%', // Ensure content fills the container
+                justifyContent: 'space-between'
               }}
             >
-              {[
-                { key: 'details', label: 'Details', icon: 'info' },
-                { key: 'agenda', label: 'Agenda', icon: 'clock' },
-                { key: 'attendees', label: 'Attendees', icon: 'users' },
-                { key: 'chat', label: 'Chat', icon: 'message-circle' }
-              ].map((tab, index) => {
-                const isActive = activeTab === tab.key;
-                const isLast = index === 3;
+              <View className="flex-row justify-between" style={{ minWidth: '100%' }}>
+                {[
+                  { key: 'details', label: 'Details', icon: 'info' },
+                  { key: 'agenda', label: 'Agenda', icon: 'clock' },
+                  { key: 'attendees', label: 'Attendees', icon: 'users' },
+                  { key: 'chat', label: 'Chat', icon: 'message-circle' }
+                ].map((tab, index) => {
+                  const isActive = activeTab === tab.key;
+                  const isLast = index === 3;
 
-                return (
-                  <TouchableOpacity
-                    key={tab.key}
-                    onPress={() => setActiveTab(tab.key as any)}
-                    className={`py-3 px-4 rounded-xl ${!isLast ? 'mr-1' : ''}`}
-                    style={{
-                      backgroundColor: isActive
-                        ? themeColors.tabActiveGradientStart
-                        : themeColors.tabInactive,
-                      minWidth: 75, // Minimum width to prevent text wrapping
-                      ...(isActive && {
-                        shadowColor: '#e85c29',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 4,
-                        elevation: 3,
-                      })
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <View className="flex-row items-center justify-center">
-                      <Feather
-                        name={tab.icon as any}
-                        size={14} // Slightly smaller icon for better fit
-                        color={isActive ? 'white' : themeColors.tabInactiveText}
-                        style={{ marginRight: 4 }} // Reduced margin
-                      />
-                      <Text
-                        className={`font-rubik-semibold text-sm ${isActive ? 'text-white' : ''}`}
-                        style={{
-                          color: isActive ? 'white' : themeColors.tabInactiveText
-                        }}
-                        numberOfLines={1} // Prevent text wrapping
-                      >
-                        {tab.label}
-                      </Text>
-                    </View>
+                  return (
+                    <TouchableOpacity
+                      key={tab.key}
+                      onPress={() => setActiveTab(tab.key as any)}
+                      className={`py-3 px-3 rounded-xl ${!isLast ? 'mr-1' : ''}`}
+                      style={{
+                        backgroundColor: isActive
+                          ? themeColors.tabActiveGradientStart
+                          : themeColors.tabInactive,
+                        flex: 1, // Allow equal distribution
+                        minWidth: 80, // Minimum width for readability
+                        maxWidth: 120, // Maximum width to prevent too much stretching
+                        ...(isActive && {
+                          shadowColor: '#e85c29',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.3,
+                          shadowRadius: 4,
+                          elevation: 3,
+                        })
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Feather
+                          name={tab.icon as any}
+                          size={14}
+                          color={isActive ? 'white' : themeColors.tabInactiveText}
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text
+                          className={`font-rubik-semibold text-sm ${isActive ? 'text-white' : ''}`}
+                          style={{
+                            color: isActive ? 'white' : themeColors.tabInactiveText
+                          }}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit={true} // Auto-adjust font size on small screens
+                          minimumFontScale={0.8} // Minimum scale for readability
+                        >
+                          {tab.label}
+                        </Text>
+                      </View>
 
-                    {/* Active indicator */}
-                    {isActive && (
-                      <View
-                        className="absolute -bottom-0.5 left-1/2 w-6 h-0.5 rounded-full"
-                        style={{
-                          backgroundColor: 'white',
-                          transform: [{ translateX: -12 }]
-                        }}
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
+                      {/* Active indicator */}
+                      {isActive && (
+                        <View
+                          className="absolute -bottom-0.5 left-1/2 w-6 h-0.5 rounded-full"
+                          style={{
+                            backgroundColor: 'white',
+                            transform: [{ translateX: -12 }]
+                          }}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
         </View>
 
         {/* Tab Content */}

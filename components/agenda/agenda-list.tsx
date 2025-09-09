@@ -31,7 +31,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
         dividerColor: activeTheme === 'light' ? '#e5e7eb' : '#374151',
 
-        // Premium colors
+        // Colors
         headerGradientStart: activeTheme === 'light' ? '#ffffff' : '#161616',
         headerGradientEnd: activeTheme === 'light' ? '#f8fafc' : '#1e293b',
         headerBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
@@ -171,7 +171,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         return { totalItems, sessions, breaks, dates };
     };
 
-    // Premium loading skeleton component
+    // Loading component
     const LoadingSkeleton = () => (
         <View className="space-y-6">
             {/* Header skeleton */}
@@ -256,7 +256,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         </View>
     );
 
-    // Premium empty state component
+    // Empty state component
     const EmptyState = () => (
         <View className="items-center py-16 px-6">
             <View
@@ -351,7 +351,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                 />
             }
         >
-            {/* Premium Agenda Stats Header */}
+            {/* Agenda Stats Header */}
             <View
                 className="mb-6 p-6 rounded-2xl border"
                 style={{
@@ -403,7 +403,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                     </View>
                 </View>
 
-                {/* Premium Stats Cards */}
+                {/* Stats Cards */}
                 <View className="flex-row space-x-3">
                     {[
                         { label: 'Sessions', value: stats.sessions, icon: 'play-circle', color: '#3b82f6' },
@@ -457,7 +457,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                 </View>
             </View>
 
-            {/* Premium Date Groups */}
+            {/* Date Groups */}
             {groupedItems.map(([date, items], groupIndex) => (
                 <View key={date} className="mb-8">
                     {/* Enhanced Date Header */}

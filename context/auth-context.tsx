@@ -1,5 +1,6 @@
+// context/auth-context.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FirebaseAuthTypes, getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
@@ -59,7 +60,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const fetchUserProfile = async (currentUser: User) => {
         try {
-
             const userRef = firestore().collection('users').doc(currentUser.uid);
             const userSnap = await userRef.get();
 
@@ -98,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
         } catch (error) {
+            console.error('Error fetching user profile:', error);
             const cachedData = await getCachedUserData();
             if (cachedData) {
                 // Handle cached data without role
@@ -111,11 +112,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const updateUserProfile = async (data: Partial<UserProfile>) => {
-
         if (!user) return;
 
         try {
-
             const userRef = firestore().collection('users').doc(user.uid);
             await userRef.update(data);
 
@@ -127,14 +126,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
         } catch (error) {
+            console.error('Error updating user profile:', error);
             throw error;
         }
-
     }
 
     useEffect(() => {
-
-        const subscriber = onAuthStateChanged(getAuth(), async (currentUser) => {
+        // Updated to use the new Firebase auth API consistently
+        const subscriber = auth().onAuthStateChanged(async (currentUser) => {
             if (currentUser) {
                 const userObj: User = {
                     uid: currentUser.uid,
@@ -148,11 +147,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             setIsLoading(false);
-
         });
 
         return subscriber;
-
     }, [])
 
     const value = {

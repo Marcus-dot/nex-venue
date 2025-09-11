@@ -1,3 +1,4 @@
+import ImagePickerComponent from '@/components/image-picker';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { Feather } from '@expo/vector-icons';
@@ -94,7 +95,6 @@ const Events = () => {
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [imageDescription, setImageDescription] = useState('');
   const [creating, setCreating] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
@@ -192,7 +192,6 @@ const Events = () => {
     setTime('');
     setLocation('');
     setImageUrl('');
-    setImageDescription('');
     setFormErrors({});
   };
 
@@ -222,13 +221,9 @@ const Events = () => {
         createdAt: Date.now(),
       };
 
-      // Only add optional field if it has a values..
+      // Only add image URL if it has a value
       if (imageUrl.trim()) {
         eventData.imageUrl = imageUrl.trim();
-      }
-
-      if (imageDescription.trim()) {
-        eventData.imageDescription = imageDescription.trim();
       }
 
       const docRef = await firestore().collection('events').add(eventData);
@@ -752,23 +747,17 @@ const Events = () => {
                     themeColors={themeColors}
                   />
 
-                  <FormInput
-                    label="Event Image URL"
-                    value={imageUrl}
-                    onChangeText={setImageUrl}
-                    placeholder="https://... (optional)"
-                    themeColors={themeColors}
+                  {/* New Image Picker Component */}
+                  <ImagePickerComponent
+                    onImageUploaded={(uploadedImageUrl) => {
+                      setImageUrl(uploadedImageUrl);
+                    }}
+                    onImageRemoved={() => {
+                      setImageUrl('');
+                    }}
+                    currentImageUrl={imageUrl}
+                    disabled={creating}
                   />
-
-                  {imageUrl.trim() && (
-                    <FormInput
-                      label="Image Description"
-                      value={imageDescription}
-                      onChangeText={setImageDescription}
-                      placeholder="Describe the image for accessibility"
-                      themeColors={themeColors}
-                    />
-                  )}
 
                   {/* Create Button */}
                   <TouchableOpacity

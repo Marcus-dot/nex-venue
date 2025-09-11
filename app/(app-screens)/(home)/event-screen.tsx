@@ -1,6 +1,6 @@
-// (app-screens)/(home)/event-screen.tsx
 import AgendaFormModal from '@/components/agenda/agenda-form-modal';
 import AgendaList from '@/components/agenda/agenda-list';
+import ImagePickerComponent from '@/components/image-picker';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { chatService } from '@/services/chat';
@@ -11,7 +11,7 @@ import { Feather } from '@expo/vector-icons';
 import firestore from '@react-native-firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -38,6 +38,17 @@ const EventScreen = () => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [imageRetryCount, setImageRetryCount] = useState(0);
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+  const [editFormErrors, setEditFormErrors] = useState<{ [key: string]: string }>({});
 
   // Agenda related state
   const [activeTab, setActiveTab] = useState<'details' | 'agenda' | 'attendees' | 'chat'>('details');
@@ -70,7 +81,10 @@ const EventScreen = () => {
     tabInactiveText: activeTheme === 'light' ? '#64748b' : '#94a3b8',
     tabActiveGradientStart: '#e85c29',
     tabActiveGradientEnd: '#dc2626',
-    tabHover: activeTheme === 'light' ? '#f1f5f9' : '#475569'
+    tabHover: activeTheme === 'light' ? '#f1f5f9' : '#475569',
+    // Add missing input colors
+    input: activeTheme === 'light' ? '#ffffff' : '#374151',
+    inputBorder: activeTheme === 'light' ? '#e5e7eb' : '#4b5563'
   };
 
   const fetchEventDetails = async () => {
@@ -289,6 +303,88 @@ const EventScreen = () => {
       setImageRetryCount(prev => prev + 1);
       setImageError(false);
       setImageLoading(true);
+    }
+  };
+  const handleEditEvent = () => {
+    if (!event) return;
+
+    // Pre-fill form with current event data
+    setEditTitle(event.title);
+    setEditDescription(event.description);
+    setEditDate(event.date);
+    setEditTime(event.time);
+    setEditLocation(event.location);
+    setEditImageUrl(event.imageUrl || '');
+    setEditFormErrors({});
+    setShowEditModal(true);
+  };
+  const validateEditForm = () => {
+    const errors: { [key: string]: string } = {};
+
+    if (!editTitle.trim()) errors.title = 'Title is required';
+    if (!editDescription.trim()) errors.description = 'Description is required';
+    if (!editDate.trim()) errors.date = 'Date is required';
+    if (!editTime.trim()) errors.time = 'Time is required';
+    if (!editLocation.trim()) errors.location = 'Location is required';
+
+    setEditFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const resetEditForm = () => {
+    setEditTitle('');
+    setEditDescription('');
+    setEditDate('');
+    setEditTime('');
+    setEditLocation('');
+    setEditImageUrl('');
+    setEditFormErrors({});
+  };
+
+  const updateEvent = async () => {
+    if (!event || !user || !canEditEvent()) {
+      Alert.alert('Permission Denied', 'You do not have permission to edit this event.');
+      return;
+    }
+
+    if (!validateEditForm()) {
+      Alert.alert('Incomplete Form', 'Please fill in all required fields.');
+      return;
+    }
+
+    setEditLoading(true);
+    try {
+      const updateData: any = {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        date: editDate.trim(),
+        time: editTime.trim(),
+        location: editLocation.trim(),
+        updatedAt: Date.now(),
+      };
+
+      // Only update image URL if it has a value
+      if (editImageUrl.trim()) {
+        updateData.imageUrl = editImageUrl.trim();
+      } else {
+        // Remove imageUrl field if empty
+        updateData.imageUrl = firestore.FieldValue.delete();
+      }
+
+      await firestore().collection('events').doc(event.id).update(updateData);
+
+      // Update local event state
+      setEvent(prev => prev ? { ...prev, ...updateData } : null);
+
+      setShowEditModal(false);
+      resetEditForm();
+
+      Alert.alert('Success!', 'Event updated successfully!');
+    } catch (error) {
+      console.error('Error updating event:', error);
+      Alert.alert('Error', 'Failed to update event. Please try again.');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -579,6 +675,11 @@ const EventScreen = () => {
   }
 
   const isCreator = event.creatorId === user?.uid;
+  // Check if current user can edit this event
+  const canEditEvent = () => {
+    if (!user || !event) return false;
+    return isAdmin || event.creatorId === user.uid;
+  };
   const canAccessChat = isAttending || isCreator;
 
   return (
@@ -612,6 +713,16 @@ const EventScreen = () => {
               className="bg-accent px-3 py-2 rounded-lg"
             >
               <Text className="text-white font-rubik-medium text-sm">Open Chat</Text>
+            </TouchableOpacity>
+          )}
+          {activeTab === 'details' && canEditEvent() && (
+            <TouchableOpacity
+              onPress={handleEditEvent}
+              className="w-10 h-10 rounded-full items-center justify-center"
+              style={{ backgroundColor: themeColors.surface }}
+              activeOpacity={0.8}
+            >
+              <Feather name="edit-2" size={20} color="#e85c29" />
             </TouchableOpacity>
           )}
         </View>
@@ -1055,6 +1166,273 @@ const EventScreen = () => {
           editingItem={editingAgendaItem}
         />
       </SafeAreaView>
+      {/* Edit Event Modal */}
+      {canEditEvent() && (
+        <Modal
+          visible={showEditModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowEditModal(false)}
+        >
+          <KeyboardAvoidingView
+            className="flex-1"
+            style={{ backgroundColor: themeColors.background }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          >
+            <SafeAreaView className="flex-1" edges={['top']}>
+              {/* Modal Header */}
+              <View
+                className="flex-row justify-between items-center p-6 border-b"
+                style={{ borderBottomColor: themeColors.border }}
+              >
+                <Text
+                  className="font-rubik-bold text-xl"
+                  style={{ color: themeColors.text }}
+                >
+                  Edit Event
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowEditModal(false);
+                    resetEditForm();
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="x" size={24} color={themeColors.textTertiary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                className="flex-1 px-6"
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="none"
+                scrollEventThrottle={16}
+              >
+                <View className="py-4">
+                  {/* Title Input */}
+                  <View className="mb-4">
+                    <View className="flex-row items-center mb-2">
+                      <Text
+                        className="font-rubik-medium text-base"
+                        style={{ color: themeColors.text }}
+                      >
+                        Event Title
+                      </Text>
+                      <Text className="text-accent ml-1">*</Text>
+                    </View>
+                    <TextInput
+                      value={editTitle}
+                      onChangeText={setEditTitle}
+                      placeholder="Enter event title"
+                      placeholderTextColor={themeColors.textTertiary}
+                      style={{
+                        fontSize: 16,
+                        height: 50,
+                        fontFamily: 'Rubik-Regular',
+                        backgroundColor: themeColors.input,
+                        color: themeColors.text,
+                        borderColor: editFormErrors.title ? '#ef4444' : themeColors.inputBorder
+                      }}
+                      className={`px-4 py-3 rounded-lg border ${editFormErrors.title ? 'border-red-500' : ''}`}
+                      autoCorrect={true}
+                      autoCapitalize="sentences"
+                      returnKeyType="next"
+                      clearButtonMode="while-editing"
+                    />
+                    {editFormErrors.title && (
+                      <View className="flex-row items-center mt-2">
+                        <Feather name="alert-circle" size={14} color="#ef4444" />
+                        <Text className="text-red-400 font-rubik text-sm ml-1">{editFormErrors.title}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Description Input */}
+                  <View className="mb-4">
+                    <View className="flex-row items-center mb-2">
+                      <Text
+                        className="font-rubik-medium text-base"
+                        style={{ color: themeColors.text }}
+                      >
+                        Description
+                      </Text>
+                      <Text className="text-accent ml-1">*</Text>
+                    </View>
+                    <TextInput
+                      value={editDescription}
+                      onChangeText={setEditDescription}
+                      placeholder="Describe the event"
+                      placeholderTextColor={themeColors.textTertiary}
+                      style={{
+                        fontSize: 16,
+                        height: 80,
+                        textAlignVertical: 'top',
+                        fontFamily: 'Rubik-Regular',
+                        backgroundColor: themeColors.input,
+                        color: themeColors.text,
+                        borderColor: editFormErrors.description ? '#ef4444' : themeColors.inputBorder
+                      }}
+                      className={`px-4 py-3 rounded-lg border ${editFormErrors.description ? 'border-red-500' : ''}`}
+                      multiline
+                      numberOfLines={4}
+                      autoCorrect={true}
+                      autoCapitalize="sentences"
+                    />
+                    {editFormErrors.description && (
+                      <View className="flex-row items-center mt-2">
+                        <Feather name="alert-circle" size={14} color="#ef4444" />
+                        <Text className="text-red-400 font-rubik text-sm ml-1">{editFormErrors.description}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Date and Time Row */}
+                  <View className="flex-row space-x-4 mb-4">
+                    <View className="flex-1">
+                      <View className="flex-row items-center mb-2">
+                        <Text
+                          className="font-rubik-medium text-base"
+                          style={{ color: themeColors.text }}
+                        >
+                          Date
+                        </Text>
+                        <Text className="text-accent ml-1">*</Text>
+                      </View>
+                      <TextInput
+                        value={editDate}
+                        onChangeText={setEditDate}
+                        placeholder="e.g., Jan 25, 2024"
+                        placeholderTextColor={themeColors.textTertiary}
+                        style={{
+                          fontSize: 16,
+                          height: 50,
+                          fontFamily: 'Rubik-Regular',
+                          backgroundColor: themeColors.input,
+                          color: themeColors.text,
+                          borderColor: editFormErrors.date ? '#ef4444' : themeColors.inputBorder
+                        }}
+                        className={`px-4 py-3 rounded-lg border ${editFormErrors.date ? 'border-red-500' : ''}`}
+                        clearButtonMode="while-editing"
+                      />
+                      {editFormErrors.date && (
+                        <View className="flex-row items-center mt-2">
+                          <Feather name="alert-circle" size={14} color="#ef4444" />
+                          <Text className="text-red-400 font-rubik text-sm ml-1">{editFormErrors.date}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View className="flex-1">
+                      <View className="flex-row items-center mb-2">
+                        <Text
+                          className="font-rubik-medium text-base"
+                          style={{ color: themeColors.text }}
+                        >
+                          Time
+                        </Text>
+                        <Text className="text-accent ml-1">*</Text>
+                      </View>
+                      <TextInput
+                        value={editTime}
+                        onChangeText={setEditTime}
+                        placeholder="e.g., 7:00 PM"
+                        placeholderTextColor={themeColors.textTertiary}
+                        style={{
+                          fontSize: 16,
+                          height: 50,
+                          fontFamily: 'Rubik-Regular',
+                          backgroundColor: themeColors.input,
+                          color: themeColors.text,
+                          borderColor: editFormErrors.time ? '#ef4444' : themeColors.inputBorder
+                        }}
+                        className={`px-4 py-3 rounded-lg border ${editFormErrors.time ? 'border-red-500' : ''}`}
+                        clearButtonMode="while-editing"
+                      />
+                      {editFormErrors.time && (
+                        <View className="flex-row items-center mt-2">
+                          <Feather name="alert-circle" size={14} color="#ef4444" />
+                          <Text className="text-red-400 font-rubik text-sm ml-1">{editFormErrors.time}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Location Input */}
+                  <View className="mb-4">
+                    <View className="flex-row items-center mb-2">
+                      <Text
+                        className="font-rubik-medium text-base"
+                        style={{ color: themeColors.text }}
+                      >
+                        Location
+                      </Text>
+                      <Text className="text-accent ml-1">*</Text>
+                    </View>
+                    <TextInput
+                      value={editLocation}
+                      onChangeText={setEditLocation}
+                      placeholder="Where will this event take place?"
+                      placeholderTextColor={themeColors.textTertiary}
+                      style={{
+                        fontSize: 16,
+                        height: 50,
+                        fontFamily: 'Rubik-Regular',
+                        backgroundColor: themeColors.input,
+                        color: themeColors.text,
+                        borderColor: editFormErrors.location ? '#ef4444' : themeColors.inputBorder
+                      }}
+                      className={`px-4 py-3 rounded-lg border ${editFormErrors.location ? 'border-red-500' : ''}`}
+                      autoCorrect={true}
+                      autoCapitalize="sentences"
+                      clearButtonMode="while-editing"
+                    />
+                    {editFormErrors.location && (
+                      <View className="flex-row items-center mt-2">
+                        <Feather name="alert-circle" size={14} color="#ef4444" />
+                        <Text className="text-red-400 font-rubik text-sm ml-1">{editFormErrors.location}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Image Picker Component */}
+                  <ImagePickerComponent
+                    onImageUploaded={(uploadedImageUrl) => {
+                      setEditImageUrl(uploadedImageUrl);
+                    }}
+                    onImageRemoved={() => {
+                      setEditImageUrl('');
+                    }}
+                    currentImageUrl={editImageUrl}
+                    disabled={editLoading}
+                  />
+
+                  {/* Update Button */}
+                  <TouchableOpacity
+                    onPress={updateEvent}
+                    disabled={editLoading}
+                    className={`py-4 rounded-xl mt-6 mb-8 flex-row items-center justify-center ${editLoading ? 'bg-gray-600' : 'bg-accent'
+                      }`}
+                    activeOpacity={0.8}
+                  >
+                    {editLoading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <>
+                        <Feather name="save" size={18} color="white" />
+                        <Text className="text-white font-rubik-semibold text-base ml-2">
+                          Update Event
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </SafeAreaView>
+          </KeyboardAvoidingView>
+        </Modal>
+      )}
     </View>
   );
 };

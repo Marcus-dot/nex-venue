@@ -4,7 +4,7 @@ import { agendaService } from '@/services/agenda';
 import { AgendaItem as AgendaItemType } from '@/types/agenda';
 import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import AgendaItem from './agenda-item';
 
 interface AgendaListProps {
@@ -20,6 +20,10 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
+    // New state for collapsible functionality
+    const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
+    const [expandAllMode, setExpandAllMode] = useState(false);
+
     // Theme-aware colors
     const themeColors = {
         background: activeTheme === 'light' ? '#D8D9D4' : '#ffffff',
@@ -31,7 +35,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         border: activeTheme === 'light' ? '#e5e7eb' : '#374151',
         dividerColor: activeTheme === 'light' ? '#e5e7eb' : '#374151',
 
-        // Colors
+        // Enhanced colors for collapsible design
         headerGradientStart: activeTheme === 'light' ? '#ffffff' : '#161616',
         headerGradientEnd: activeTheme === 'light' ? '#f8fafc' : '#1e293b',
         headerBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
@@ -41,14 +45,12 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         statsCardBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.6)' : 'rgba(71, 85, 105, 0.4)',
         statsAccent: '#e85c29',
 
-        dateHeaderBg: activeTheme === 'light' ? '#ffffff' : '#161616',
-        dateHeaderBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
-        dateGradient: activeTheme === 'light'
-            ? 'linear-gradient(90deg, rgba(232, 92, 41, 0.1) 0%, rgba(248, 113, 113, 0.05) 100%)'
-            : 'linear-gradient(90deg, rgba(232, 92, 41, 0.2) 0%, rgba(248, 113, 113, 0.1) 100%)',
-
-        timelineColor: activeTheme === 'light' ? '#e2e8f0' : '#475569',
-        timelineAccent: '#e85c29',
+        // Day header colors for collapsible design
+        dayHeaderBg: activeTheme === 'light' ? '#ffffff' : '#161616',
+        dayHeaderBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
+        dayHeaderShadow: activeTheme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(0, 0, 0, 0.2)',
+        dayHeaderExpanded: activeTheme === 'light' ? 'rgba(232, 92, 41, 0.05)' : 'rgba(232, 92, 41, 0.1)',
+        dayHeaderHover: activeTheme === 'light' ? 'rgba(248, 250, 252, 1)' : 'rgba(30, 41, 59, 1)',
 
         skeletonBg: activeTheme === 'light' ? '#f1f5f9' : '#334155',
         skeletonShimmer: activeTheme === 'light' ? '#e2e8f0' : '#475569',
@@ -56,6 +58,11 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         emptyStateBg: activeTheme === 'light' ? '#ffffff' : '#161616',
         emptyStateIcon: activeTheme === 'light' ? '#cbd5e1' : '#64748b',
         emptyStateAccent: '#e85c29',
+
+        // Control buttons
+        controlButtonBg: activeTheme === 'light' ? 'rgba(248, 250, 252, 0.9)' : 'rgba(30, 41, 59, 0.8)',
+        controlButtonBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
+        controlButtonText: activeTheme === 'light' ? '#374151' : '#e2e8f0',
     };
 
     useEffect(() => {
@@ -64,13 +71,44 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         // Set up real-time listener - items will come back already sorted by date/time
         const unsubscribe = agendaService.subscribeToAgenda(eventId, (items) => {
             setAgendaItems(items); // Items are already sorted chronologically by the service
+
+            // Auto-expand first day and any day with current agenda item on initial load
+            if (items.length > 0 && expandedDays.size === 0) {
+                const newExpandedDays = new Set<string>();
+                const groupedItems = groupItemsByDate(items);
+
+                // Always expand first day
+                if (groupedItems.length > 0) {
+                    newExpandedDays.add(groupedItems[0][0]);
+                }
+
+                // Also expand day with current agenda item
+                if (currentAgendaItem) {
+                    const currentItem = items.find(item => item.id === currentAgendaItem);
+                    if (currentItem) {
+                        newExpandedDays.add(currentItem.date);
+                    }
+                }
+
+                setExpandedDays(newExpandedDays);
+            }
+
             setLoading(false);
             setRefreshing(false);
         });
 
-        // Cleanup listener on unmount
         return () => unsubscribe();
     }, [eventId]);
+
+    // Update expanded days when currentAgendaItem changes
+    useEffect(() => {
+        if (currentAgendaItem && agendaItems.length > 0) {
+            const currentItem = agendaItems.find(item => item.id === currentAgendaItem);
+            if (currentItem && !expandedDays.has(currentItem.date)) {
+                setExpandedDays(prev => new Set([...prev, currentItem.date]));
+            }
+        }
+    }, [currentAgendaItem, agendaItems]);
 
     const handleRefresh = () => {
         setRefreshing(true);
@@ -130,8 +168,8 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         });
     };
 
-    // Enhanced date formatting
-    const formatDate = (dateString: string) => {
+    // Enhanced date formatting with day number
+    const formatDate = (dateString: string, dayIndex: number) => {
         try {
             const date = new Date(dateString);
             const today = new Date();
@@ -154,10 +192,37 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                 baseFormat += ' (Tomorrow)';
             }
 
-            return baseFormat;
+            return { formatted: baseFormat, dayNumber: dayIndex + 1 };
         } catch (error) {
-            // Fallback for invalid dates
-            return dateString;
+            return { formatted: dateString, dayNumber: dayIndex + 1 };
+        }
+    };
+
+    // Toggle day expansion
+    const toggleDayExpansion = (date: string) => {
+        setExpandedDays(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(date)) {
+                newSet.delete(date);
+            } else {
+                newSet.add(date);
+            }
+            return newSet;
+        });
+    };
+
+    // Expand/Collapse all days
+    const toggleExpandAll = () => {
+        const groupedItems = groupItemsByDate(agendaItems);
+        if (expandAllMode) {
+            // Collapse all
+            setExpandedDays(new Set());
+            setExpandAllMode(false);
+        } else {
+            // Expand all
+            const allDates = groupedItems.map(([date]) => date);
+            setExpandedDays(new Set(allDates));
+            setExpandAllMode(true);
         }
     };
 
@@ -200,54 +265,30 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                 </View>
             </View>
 
-            {/* Items skeleton */}
+            {/* Day skeletons */}
             {[1, 2, 3].map((i) => (
                 <View key={i} className="space-y-4">
-                    {/* Date header skeleton */}
-                    <View className="space-y-2">
-                        <View
-                            className="h-6 w-48 rounded-lg"
-                            style={{ backgroundColor: themeColors.skeletonBg }}
-                        />
-                        <View
-                            className="h-4 w-32 rounded-lg"
-                            style={{ backgroundColor: themeColors.skeletonShimmer }}
-                        />
-                    </View>
-
-                    {/* Item skeleton */}
                     <View
-                        className="p-4 rounded-xl border space-y-3"
+                        className="p-4 rounded-xl border"
                         style={{
                             backgroundColor: themeColors.surface,
                             borderColor: themeColors.border
                         }}
                     >
-                        <View className="flex-row justify-between">
+                        <View className="flex-row justify-between items-center">
                             <View className="space-y-2 flex-1">
                                 <View
-                                    className="h-5 w-3/4 rounded-lg"
+                                    className="h-6 w-48 rounded-lg"
                                     style={{ backgroundColor: themeColors.skeletonBg }}
                                 />
                                 <View
-                                    className="h-4 w-1/2 rounded-lg"
+                                    className="h-4 w-32 rounded-lg"
                                     style={{ backgroundColor: themeColors.skeletonShimmer }}
                                 />
                             </View>
                             <View
-                                className="h-6 w-16 rounded-full"
+                                className="h-6 w-6 rounded-full"
                                 style={{ backgroundColor: themeColors.skeletonBg }}
-                            />
-                        </View>
-
-                        <View className="space-y-2">
-                            <View
-                                className="h-4 w-full rounded-lg"
-                                style={{ backgroundColor: themeColors.skeletonShimmer }}
-                            />
-                            <View
-                                className="h-4 w-4/5 rounded-lg"
-                                style={{ backgroundColor: themeColors.skeletonShimmer }}
                             />
                         </View>
                     </View>
@@ -377,7 +418,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                             className="font-rubik text-sm"
                             style={{ color: themeColors.textSecondary }}
                         >
-                            Real-time schedule updates
+                            {stats.dates > 1 ? `${stats.dates}-day schedule` : 'Daily schedule'} • Real-time updates
                         </Text>
                     </View>
 
@@ -404,7 +445,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                 </View>
 
                 {/* Stats Cards */}
-                <View className="flex-row space-x-3">
+                <View className="flex-row space-x-3 mb-4">
                     {[
                         { label: 'Sessions', value: stats.sessions, icon: 'play-circle', color: '#3b82f6' },
                         { label: 'Breaks', value: stats.breaks, icon: 'coffee', color: '#8b5cf6' },
@@ -442,92 +483,173 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                     ))}
                 </View>
 
-                {/* Chronological Order Indicator */}
-                <View
-                    className="mt-4 p-3 rounded-lg flex-row items-center"
-                    style={{ backgroundColor: `${themeColors.statsAccent}10` }}
-                >
-                    <Feather name="trending-up" size={16} color={themeColors.statsAccent} />
-                    <Text
-                        className="font-rubik-medium text-sm ml-2"
-                        style={{ color: themeColors.statsAccent }}
-                    >
-                        Items automatically sorted by date & time
-                    </Text>
-                </View>
+                {/* Expand/Collapse All Control */}
+                {stats.dates > 1 && (
+                    <View className="flex-row space-x-3">
+                        <TouchableOpacity
+                            onPress={toggleExpandAll}
+                            className="flex-1 p-3 rounded-lg border flex-row items-center justify-center"
+                            style={{
+                                backgroundColor: themeColors.controlButtonBg,
+                                borderColor: themeColors.controlButtonBorder
+                            }}
+                            activeOpacity={0.7}
+                        >
+                            <Feather
+                                name={expandAllMode ? "minimize-2" : "maximize-2"}
+                                size={16}
+                                color={themeColors.statsAccent}
+                            />
+                            <Text
+                                className="font-rubik-medium text-sm ml-2"
+                                style={{ color: themeColors.statsAccent }}
+                            >
+                                {expandAllMode ? 'Collapse All Days' : 'Expand All Days'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
 
-            {/* Date Groups */}
-            {groupedItems.map(([date, items], groupIndex) => (
-                <View key={date} className="mb-8">
-                    {/* Enhanced Date Header */}
-                    <View
-                        className="mb-6 p-4 rounded-xl border"
-                        style={{
-                            backgroundColor: themeColors.dateHeaderBg,
-                            borderColor: themeColors.dateHeaderBorder,
-                        }}
-                    >
-                        <View className="flex-row items-center justify-between">
-                            <View className="flex-1">
-                                <Text
-                                    className="font-rubik-bold text-xl mb-1"
-                                    style={{ color: themeColors.text }}
-                                >
-                                    {formatDate(date)}
-                                </Text>
-                                <View className="flex-row items-center">
-                                    <Feather name="clock" size={14} color={themeColors.textSecondary} />
-                                    <Text
-                                        className="font-rubik text-sm ml-1"
-                                        style={{ color: themeColors.textSecondary }}
+            {/* Collapsible Date Groups */}
+            {groupedItems.map(([date, items], groupIndex) => {
+                const isExpanded = expandedDays.has(date);
+                const { formatted: formattedDate, dayNumber } = formatDate(date, groupIndex);
+                const hasCurrentItem = items.some(item => item.id === currentAgendaItem);
+
+                return (
+                    <View key={date} className="mb-6">
+                        {/* Enhanced Collapsible Day Header */}
+                        <TouchableOpacity
+                            onPress={() => toggleDayExpansion(date)}
+                            className="p-5 rounded-xl border mb-4"
+                            style={{
+                                backgroundColor: isExpanded ? themeColors.dayHeaderExpanded : themeColors.dayHeaderBg,
+                                borderColor: themeColors.dayHeaderBorder,
+                                shadowColor: themeColors.dayHeaderShadow,
+                                shadowOffset: { width: 0, height: isExpanded ? 4 : 2 },
+                                shadowOpacity: isExpanded ? 0.15 : 0.08,
+                                shadowRadius: isExpanded ? 12 : 6,
+                                elevation: isExpanded ? 6 : 3,
+                            }}
+                            activeOpacity={0.8}
+                        >
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-1 flex-row items-center">
+                                    {/* Day Number Badge */}
+                                    <View
+                                        className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                                        style={{
+                                            backgroundColor: hasCurrentItem
+                                                ? themeColors.statsAccent
+                                                : `${themeColors.statsAccent}20`
+                                        }}
                                     >
-                                        {items.length} item{items.length !== 1 ? 's' : ''} • {items.filter(i => !i.isBreak).length} session{items.filter(i => !i.isBreak).length !== 1 ? 's' : ''}
-                                    </Text>
+                                        <Text
+                                            className="font-rubik-bold text-lg"
+                                            style={{
+                                                color: hasCurrentItem ? 'white' : themeColors.statsAccent
+                                            }}
+                                        >
+                                            {dayNumber}
+                                        </Text>
+                                    </View>
+
+                                    <View className="flex-1">
+                                        <View className="flex-row items-center mb-1">
+                                            <Text
+                                                className="font-rubik-bold text-xl"
+                                                style={{ color: themeColors.text }}
+                                            >
+                                                Day {dayNumber}
+                                            </Text>
+                                            {hasCurrentItem && (
+                                                <View
+                                                    className="ml-3 px-3 py-1 rounded-full"
+                                                    style={{ backgroundColor: themeColors.statsAccent }}
+                                                >
+                                                    <Text className="text-white font-rubik-bold text-xs">
+                                                        LIVE
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                        <Text
+                                            className="font-rubik text-base mb-2"
+                                            style={{ color: themeColors.text }}
+                                        >
+                                            {formattedDate}
+                                        </Text>
+                                        <View className="flex-row items-center">
+                                            <Feather name="clock" size={14} color={themeColors.textSecondary} />
+                                            <Text
+                                                className="font-rubik text-sm ml-1"
+                                                style={{ color: themeColors.textSecondary }}
+                                            >
+                                                {items.length} item{items.length !== 1 ? 's' : ''} • {items.filter(i => !i.isBreak).length} session{items.filter(i => !i.isBreak).length !== 1 ? 's' : ''}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+
+                                {/* Expand/Collapse Icon */}
+                                <View
+                                    className="w-10 h-10 rounded-full items-center justify-center"
+                                    style={{
+                                        backgroundColor: isExpanded
+                                            ? `${themeColors.statsAccent}15`
+                                            : themeColors.controlButtonBg
+                                    }}
+                                >
+                                    <Feather
+                                        name={isExpanded ? "chevron-up" : "chevron-down"}
+                                        size={20}
+                                        color={isExpanded ? themeColors.statsAccent : themeColors.textSecondary}
+                                    />
                                 </View>
                             </View>
 
-                            <View
-                                className="px-3 py-1 rounded-full"
-                                style={{ backgroundColor: `${themeColors.timelineAccent}20` }}
-                            >
-                                <Text
-                                    className="font-rubik-semibold text-xs"
-                                    style={{ color: themeColors.timelineAccent }}
-                                >
-                                    Day {groupIndex + 1}
-                                </Text>
-                            </View>
-                        </View>
+                            {/* Progress bar for expanded day */}
+                            {isExpanded && (
+                                <View className="mt-4">
+                                    <View
+                                        className="h-1 rounded-full"
+                                        style={{
+                                            backgroundColor: `${themeColors.statsAccent}20`,
+                                        }}
+                                    >
+                                        <View
+                                            className="h-1 rounded-full"
+                                            style={{
+                                                backgroundColor: themeColors.statsAccent,
+                                                width: '100%', // You could calculate actual progress based on time
+                                                opacity: 0.6
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+                        </TouchableOpacity>
 
-                        {/* Elegant divider line */}
-                        <View className="mt-3">
-                            <View
-                                className="h-0.5 rounded-full"
-                                style={{
-                                    backgroundColor: themeColors.timelineAccent,
-                                    opacity: 0.3
-                                }}
-                            />
-                        </View>
-                    </View>
-
-                    {/* Clean Agenda Items */}
-                    <View>
-                        {items.map((item, index) => (
-                            <View key={item.id} className="mb-6">
-                                <AgendaItem
-                                    item={item}
-                                    isCurrentItem={currentAgendaItem === item.id}
-                                    onEdit={isAdmin ? onEditItem : undefined}
-                                    onDelete={isAdmin ? handleDeleteItem : undefined}
-                                    onSetCurrent={isAdmin ? handleSetCurrentItem : undefined}
-                                />
+                        {/* Collapsible Agenda Items */}
+                        {isExpanded && (
+                            <View>
+                                {items.map((item, index) => (
+                                    <View key={item.id} className="mb-6">
+                                        <AgendaItem
+                                            item={item}
+                                            isCurrentItem={currentAgendaItem === item.id}
+                                            onEdit={isAdmin ? onEditItem : undefined}
+                                            onDelete={isAdmin ? handleDeleteItem : undefined}
+                                            onSetCurrent={isAdmin ? handleSetCurrentItem : undefined}
+                                        />
+                                    </View>
+                                ))}
                             </View>
-                        ))}
+                        )}
                     </View>
-                </View>
-            ))}
+                );
+            })}
 
             {/* Enhanced Footer */}
             <View
@@ -543,7 +665,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                         className="font-rubik-medium text-sm ml-2"
                         style={{ color: themeColors.textSecondary }}
                     >
-                        {stats.totalItems} items automatically synchronized
+                        {stats.totalItems} items across {stats.dates} day{stats.dates !== 1 ? 's' : ''} • Auto-synchronized
                     </Text>
                 </View>
                 <Text

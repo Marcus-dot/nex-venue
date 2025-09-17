@@ -1,12 +1,13 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Keyboard, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ActionButton from '@/components/action-button';
 import LongTextInput from '@/components/long-text-input';
-import { TEXT_SIZE } from '@/constants';
+import { SCREEN_HEIGHT, TEXT_SIZE } from '@/constants';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { UserRole } from '@/types/auth';
@@ -200,72 +201,6 @@ const ProfileSetup = () => {
     );
   };
 
-  const FormInput = ({
-    label,
-    value,
-    onChangeText,
-    placeholder,
-    error,
-    required = false,
-    maxLength = 50
-  }: {
-    label: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    placeholder: string;
-    error?: string;
-    required?: boolean;
-    maxLength?: number;
-  }) => (
-    <View className="mb-4">
-      <View className="flex-row items-center mb-2">
-        <Text
-          style={{ fontSize: TEXT_SIZE * 0.9, color: themeColors.text }}
-          className="font-rubik-medium"
-        >
-          {label}
-        </Text>
-        {required && <Text style={{ color: themeColors.accent }} className="ml-1">*</Text>}
-      </View>
-      <LongTextInput
-        text={value}
-        handleTextChange={(text) => {
-          onChangeText(text);
-          // Clear error when user starts typing
-          if (error) {
-            const newErrors = { ...formErrors };
-            const errorKey = label.toLowerCase().replace(/\s+/g, '');
-            delete newErrors[errorKey];
-            setFormErrors(newErrors);
-          }
-        }}
-        width='100%'
-        placeholder={placeholder}
-        max={maxLength}
-        error={!!error}
-      />
-      {error && (
-        <View className="flex-row items-center mt-2">
-          <Feather name="alert-circle" size={14} color={themeColors.error} />
-          <Text
-            className="font-rubik text-sm ml-1"
-            style={{ color: themeColors.error }}
-          >
-            {error}
-          </Text>
-        </View>
-      )}
-      {maxLength && value.length > maxLength * 0.8 && (
-        <Text
-          className="font-rubik text-xs mt-1"
-          style={{ color: themeColors.textTertiary }}
-        >
-          {value.length}/{maxLength} characters
-        </Text>
-      )}
-    </View>
-  );
-
   const GenderSelector = () => (
     <View className="mb-6">
       <View className="flex-row items-center mb-3">
@@ -296,10 +231,12 @@ const ProfileSetup = () => {
             }}
             onPress={() => {
               setGender(option.value as any);
-              // Clear gender error
-              const newErrors = { ...formErrors };
-              delete newErrors.gender;
-              setFormErrors(newErrors);
+              // Clear gender error only if it exists
+              if (formErrors.gender) {
+                const newErrors = { ...formErrors };
+                delete newErrors.gender;
+                setFormErrors(newErrors);
+              }
             }}
             activeOpacity={0.8}
           >
@@ -426,54 +363,6 @@ const ProfileSetup = () => {
     </View>
   );
 
-  const AdminCodeInput = () => {
-    if (role !== 'admin') return null;
-
-    return (
-      <View className="mb-6">
-        <View
-          className="p-4 rounded-xl mb-4 border"
-          style={{
-            backgroundColor: themeColors.adminBackground,
-            borderColor: themeColors.adminBorder
-          }}
-        >
-          <View className="flex-row items-center mb-2">
-            <Feather name="shield" size={16} color={themeColors.adminIcon} />
-            <Text
-              className="font-rubik-medium text-sm ml-2"
-              style={{ color: themeColors.adminText }}
-            >
-              Administrator Access
-            </Text>
-          </View>
-          <Text
-            className="font-rubik text-xs"
-            style={{ color: themeColors.adminText }}
-          >
-            Admin privileges include creating event agendas, managing live agenda items, and advanced event administration features.
-          </Text>
-        </View>
-
-        <FormInput
-          label="Admin Access Code"
-          value={adminCode}
-          onChangeText={setAdminCode}
-          placeholder="Enter your admin access code"
-          error={formErrors.adminCode}
-          required
-          maxLength={20}
-        />
-        <Text
-          className="font-rubik text-xs mt-1"
-          style={{ color: themeColors.textSecondary }}
-        >
-          Contact your organization administrator for the access code
-        </Text>
-      </View>
-    );
-  };
-
   const AttemptWarning = () => {
     if (saveAttempts === 0) return null;
 
@@ -507,88 +396,168 @@ const ProfileSetup = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1"
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ flexGrow: 1, height: SCREEN_HEIGHT }}
       style={{ backgroundColor: themeColors.background }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardShouldPersistTaps="handled"
     >
-      <SafeAreaView className='flex-1' edges={['top']}>
-        <ScrollView
-          className="flex-1 px-6"
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="always"
-        >
-          {/* Header */}
-          <View className="items-center mb-8 mt-8">
-            <View
-              className="w-20 h-20 rounded-full items-center justify-center mb-6"
-              style={{ backgroundColor: themeColors.accent }}
-            >
-              <Feather name="user-plus" size={32} color="white" />
-            </View>
-            <Text
-              style={{ fontSize: TEXT_SIZE * 1.3, color: themeColors.text }}
-              className="font-rubik-bold text-center mb-2"
-            >
-              Complete Your Profile
-            </Text>
-            <Text
-              style={{ fontSize: TEXT_SIZE * 0.85, color: themeColors.textSecondary }}
-              className="font-rubik text-center max-w-sm leading-6"
-            >
-              Tell us a bit about yourself to personalize your NexVenue experience
-            </Text>
-          </View>
-
-          {/* Attempt Warning */}
-          <AttemptWarning />
-
-          {/* Form */}
-          <FormInput
-            label="Full Name"
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Enter your full name"
-            error={formErrors.fullName}
-            required
-            maxLength={50}
-          />
-
-          <GenderSelector />
-
-          <RoleSelector />
-
-          <AdminCodeInput />
-
-          {/* Complete Button */}
-          <ActionButton
-            loading={loading}
-            handlePress={handleCompleteProfile}
-            buttonText='Complete Profile'
-            showArrow
-            width="100%"
-          />
-
-          {/* Support Link */}
-          <View className="items-center mt-6 mb-8">
-            <Text
-              className="font-rubik text-xs mb-2"
-              style={{ color: themeColors.textTertiary }}
-            >
-              Need help setting up your profile?
-            </Text>
-            <TouchableOpacity onPress={showSupportInfo} activeOpacity={0.7}>
-              <Text
-                className="font-rubik-medium text-sm"
-                style={{ color: themeColors.accent }}
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <SafeAreaView className='flex-1' edges={['top']} style={{ backgroundColor: themeColors.background }}>
+          <View className="flex-1 px-6">
+            {/* Header */}
+            <View className="items-center mb-8 mt-8">
+              <View
+                className="w-20 h-20 rounded-full items-center justify-center mb-6"
+                style={{ backgroundColor: themeColors.accent }}
               >
-                Contact Support
+                <Feather name="user-plus" size={32} color="white" />
+              </View>
+              <Text
+                style={{ fontSize: TEXT_SIZE * 1.3, color: themeColors.text }}
+                className="font-rubik-bold text-center mb-2"
+              >
+                Complete Your Profile
               </Text>
-            </TouchableOpacity>
+              <Text
+                style={{ fontSize: TEXT_SIZE * 0.85, color: themeColors.textSecondary }}
+                className="font-rubik text-center max-w-sm leading-6"
+              >
+                Tell us a bit about yourself to personalize your NexVenue experience
+              </Text>
+            </View>
+
+            {/* Attempt Warning */}
+            <AttemptWarning />
+
+            {/* Form */}
+            <View className="w-full flex items-center mb-4">
+              <View className="flex-row items-center mb-2 w-full">
+                <Text
+                  style={{ fontSize: TEXT_SIZE * 0.9, color: themeColors.text }}
+                  className="font-rubik-medium"
+                >
+                  Full Name
+                </Text>
+                <Text style={{ color: themeColors.accent }} className="ml-1">*</Text>
+              </View>
+              <LongTextInput
+                handleTextChange={setFullName}
+                text={fullName}
+                placeholder="Enter your full name"
+                error={false}
+              />
+              {formErrors.fullName ? (
+                <View className="flex-row items-center mt-2 w-full">
+                  <Feather name="alert-circle" size={16} color={themeColors.error} />
+                  <Text
+                    className="font-rubik text-sm ml-2"
+                    style={{ color: themeColors.error }}
+                  >
+                    {formErrors.fullName}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <GenderSelector />
+
+            <RoleSelector />
+
+            {/* Admin Code Input - Direct implementation like Full Name */}
+            {role === 'admin' && (
+              <View className="mb-6">
+                <View
+                  className="p-4 rounded-xl mb-4 border"
+                  style={{
+                    backgroundColor: themeColors.adminBackground,
+                    borderColor: themeColors.adminBorder
+                  }}
+                >
+                  <View className="flex-row items-center mb-2">
+                    <Feather name="shield" size={16} color={themeColors.adminIcon} />
+                    <Text
+                      className="font-rubik-medium text-sm ml-2"
+                      style={{ color: themeColors.adminText }}
+                    >
+                      Administrator Access
+                    </Text>
+                  </View>
+                  <Text
+                    className="font-rubik text-xs"
+                    style={{ color: themeColors.adminText }}
+                  >
+                    Admin privileges include creating event agendas, managing live agenda items, and advanced event administration features.
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center mb-2">
+                  <Text
+                    style={{ fontSize: TEXT_SIZE * 0.9, color: themeColors.text }}
+                    className="font-rubik-medium"
+                  >
+                    Admin Access Code
+                  </Text>
+                  <Text style={{ color: themeColors.accent }} className="ml-1">*</Text>
+                </View>
+
+                <LongTextInput
+                  handleTextChange={setAdminCode}
+                  text={adminCode}
+                  placeholder="Enter your admin access code"
+                  error={false}
+                />
+
+                {formErrors.adminCode ? (
+                  <View className="flex-row items-center mt-2">
+                    <Feather name="alert-circle" size={16} color={themeColors.error} />
+                    <Text
+                      className="font-rubik text-sm ml-2"
+                      style={{ color: themeColors.error }}
+                    >
+                      {formErrors.adminCode}
+                    </Text>
+                  </View>
+                ) : null}
+
+                <Text
+                  className="font-rubik text-xs mt-1"
+                  style={{ color: themeColors.textSecondary }}
+                >
+                  Contact your organization administrator for the access code
+                </Text>
+              </View>
+            )}
+
+            {/* Complete Button */}
+            <ActionButton
+              loading={loading}
+              handlePress={handleCompleteProfile}
+              buttonText='Complete Profile'
+              showArrow
+              width="100%"
+            />
+
+            {/* Support Link */}
+            <View className="items-center mt-6 mb-8">
+              <Text
+                className="font-rubik text-xs mb-2"
+                style={{ color: themeColors.textTertiary }}
+              >
+                Need help setting up your profile?
+              </Text>
+              <TouchableOpacity onPress={showSupportInfo} activeOpacity={0.7}>
+                <Text
+                  className="font-rubik-medium text-sm"
+                  style={{ color: themeColors.accent }}
+                >
+                  Contact Support
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAwareScrollView>
   );
 };
 

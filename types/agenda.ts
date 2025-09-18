@@ -15,6 +15,7 @@ export interface AgendaItem {
     updatedAt: number;
     createdBy: string; // admin who created this item
     lastEditedBy: string; // admin who last edited this item
+    speakerBio?: string;
 }
 
 export interface EventAgenda {

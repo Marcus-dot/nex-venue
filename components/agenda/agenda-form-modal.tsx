@@ -30,6 +30,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
     const [endTime, setEndTime] = useState('');
     const [date, setDate] = useState('');
     const [speaker, setSpeaker] = useState('');
+    const [speakerBio, setSpeakerBio] = useState('');
     const [location, setLocation] = useState('');
     const [category, setCategory] = useState<AgendaItem['category']>('presentation');
     const [isBreak, setIsBreak] = useState(false);
@@ -74,6 +75,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setEndTime(editingItem.endTime);
             setDate(editingItem.date);
             setSpeaker(editingItem.speaker || '');
+            setSpeakerBio(editingItem.speakerBio || ''); // New field for speaker bio
             setLocation(editingItem.location || '');
             setCategory(editingItem.category || 'presentation');
             setIsBreak(editingItem.isBreak || false);
@@ -85,6 +87,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setEndTime('');
             setDate('');
             setSpeaker('');
+            setSpeakerBio(''); // New field for speaker bio
             setLocation('');
             setCategory('presentation');
             setIsBreak(false);
@@ -123,6 +126,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                 endTime: endTime.trim(),
                 date: date.trim(),
                 speaker: speaker.trim() || undefined,
+                speakerBio: speakerBio.trim() || undefined, // New field for speaker bio
                 location: location.trim() || undefined,
                 category,
                 isBreak,
@@ -345,6 +349,33 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 className="p-3 rounded-lg font-rubik border"
                             />
                         </View>
+
+                        {/* Speaker Bio */}
+                        <View className="mb-4">
+                            <Text
+                                style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
+                                className="font-rubik-medium mb-2"
+                            >
+                                Speaker Bio
+                            </Text>
+                            <TextInput
+                                value={speakerBio}
+                                onChangeText={setSpeakerBio}
+                                placeholder="Add speaker background / bio (optional)"
+                                placeholderTextColor={themeColors.textTertiary}
+                                style={{
+                                    fontSize: TEXT_SIZE,
+                                    minHeight: 80,
+                                    backgroundColor: themeColors.input,
+                                    color: themeColors.inputText,
+                                    borderColor: themeColors.inputBorder,
+                                }}
+                                className="p-3 rounded-lg font-rubik border"
+                                multiline
+                                textAlignVertical="top"
+                            />
+                        </View>
+
 
                         {/* Location */}
                         <View className="mb-4">

@@ -16,6 +16,7 @@ export interface AgendaItem {
     createdBy: string; // admin who created this item
     lastEditedBy: string; // admin who last edited this item
     speakerBio?: string;
+    speakerImage?: string; // NEW: URL to speaker's profile image
 }
 
 export interface EventAgenda {

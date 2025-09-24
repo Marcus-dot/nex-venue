@@ -3,7 +3,8 @@ import { useTheme } from '@/context/theme-context';
 import { AgendaItem as AgendaItemType } from '@/types/agenda';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Image } from 'expo-image';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -38,6 +39,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     const { activeTheme } = useTheme();
 
     const [isSpeakerModalVisible, setSpeakerModalVisible] = useState(false);
+    const [imageLoadError, setImageLoadError] = useState(false);
     const slideAnim = useRef(new Animated.Value(screenHeight)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -45,7 +47,11 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     // Enhanced modal animations
     const showModal = useCallback(() => {
         setSpeakerModalVisible(true);
-        StatusBar.setBarStyle('light-content', true);
+
+        // Delay StatusBar change to avoid timing conflicts
+        setTimeout(() => {
+            StatusBar.setBarStyle('light-content', true);
+        }, 50);
 
         Animated.parallel([
             Animated.timing(fadeAnim, {
@@ -69,7 +75,10 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     }, [fadeAnim, slideAnim, scaleAnim]);
 
     const hideModal = useCallback(() => {
-        StatusBar.setBarStyle(activeTheme === 'light' ? 'dark-content' : 'light-content', true);
+        // Delay StatusBar change to avoid timing conflicts
+        setTimeout(() => {
+            StatusBar.setBarStyle(activeTheme === 'light' ? 'dark-content' : 'light-content', true);
+        }, 50);
 
         Animated.parallel([
             Animated.timing(fadeAnim, {
@@ -89,6 +98,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
             })
         ]).start(() => {
             setSpeakerModalVisible(false);
+            setImageLoadError(false); // Reset image error state
         });
     }, [activeTheme, fadeAnim, slideAnim, scaleAnim]);
 
@@ -100,7 +110,14 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         }
     }, [isSpeakerModalVisible, slideAnim, fadeAnim, scaleAnim]);
 
-    // Enhanced theme colors with better contrast and accessibility
+    // Reset image error when speaker image changes - with proper timing
+    useEffect(() => {
+        if (item.speakerImage) {
+            setImageLoadError(false);
+        }
+    }, [item.speakerImage]);
+
+    // Enhanced theme colors with better contrast and accessibility - moved outside of effects
     const themeColors = {
         // Basic colors
         background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
@@ -149,6 +166,56 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         categoryAlpha: activeTheme === 'light' ? '0.12' : '0.2',
     };
 
+    // Memoize category config to avoid recalculation during renders
+    const categoryConfig = useMemo(() => {
+        const configs = {
+            keynote: {
+                bg: `rgba(147, 51, 234, ${themeColors.categoryAlpha})`,
+                border: 'rgba(147, 51, 234, 0.3)',
+                text: activeTheme === 'light' ? '#7c3aed' : '#a855f7',
+                icon: 'mic' as const
+            },
+            presentation: {
+                bg: `rgba(59, 130, 246, ${themeColors.categoryAlpha})`,
+                border: 'rgba(59, 130, 246, 0.3)',
+                text: activeTheme === 'light' ? '#2563eb' : '#60a5fa',
+                icon: 'monitor' as const
+            },
+            panel: {
+                bg: `rgba(16, 185, 129, ${themeColors.categoryAlpha})`,
+                border: 'rgba(16, 185, 129, 0.3)',
+                text: activeTheme === 'light' ? '#059669' : '#34d399',
+                icon: 'users' as const
+            },
+            workshop: {
+                bg: `rgba(245, 158, 11, ${themeColors.categoryAlpha})`,
+                border: 'rgba(245, 158, 11, 0.3)',
+                text: activeTheme === 'light' ? '#d97706' : '#fbbf24',
+                icon: 'tool' as const
+            },
+            networking: {
+                bg: `rgba(236, 72, 153, ${themeColors.categoryAlpha})`,
+                border: 'rgba(236, 72, 153, 0.3)',
+                text: activeTheme === 'light' ? '#be185d' : '#f472b6',
+                icon: 'coffee' as const
+            },
+            break: {
+                bg: `rgba(107, 114, 128, ${themeColors.categoryAlpha})`,
+                border: 'rgba(107, 114, 128, 0.3)',
+                text: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
+                icon: 'pause' as const
+            },
+            other: {
+                bg: `rgba(75, 85, 99, ${themeColors.categoryAlpha})`,
+                border: 'rgba(75, 85, 99, 0.3)',
+                text: activeTheme === 'light' ? '#4b5563' : '#9ca3af',
+                icon: 'calendar' as const
+            }
+        };
+
+        return configs[item.category as keyof typeof configs] || configs.other;
+    }, [item.category, activeTheme, themeColors.categoryAlpha]);
+
     // Enhanced category configurations
     const getCategoryConfig = (category?: string) => {
         const configs = {
@@ -186,321 +253,219 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                 bg: `rgba(107, 114, 128, ${themeColors.categoryAlpha})`,
                 border: 'rgba(107, 114, 128, 0.3)',
                 text: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
-                icon: 'pause-circle' as const
+                icon: 'pause' as const
             },
             other: {
-                bg: `rgba(232, 92, 41, ${themeColors.categoryAlpha})`,
-                border: 'rgba(232, 92, 41, 0.3)',
-                text: '#e85c29',
-                icon: 'star' as const
+                bg: `rgba(75, 85, 99, ${themeColors.categoryAlpha})`,
+                border: 'rgba(75, 85, 99, 0.3)',
+                text: activeTheme === 'light' ? '#4b5563' : '#9ca3af',
+                icon: 'calendar' as const
             }
         };
+
         return configs[category as keyof typeof configs] || configs.other;
     };
 
     const formatTime = (time: string) => {
-        try {
-            const [hours, minutes] = time.split(':');
-            const hour = parseInt(hours);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour % 12 || 12;
-            return `${displayHour}:${minutes} ${ampm}`;
-        } catch {
-            return time;
-        }
+        // Simple time formatting - you might want to enhance this
+        return time;
     };
 
-    const getItemStyles = () => {
-        const baseStyle = {
-            borderRadius: 20,
-            marginBottom: 24,
-            overflow: 'hidden' as const,
-        };
-
-        if (isCurrentItem) {
-            return {
-                ...baseStyle,
-                backgroundColor: themeColors.currentBackground,
-                borderColor: themeColors.currentBorder,
-                borderWidth: 2,
-                shadowColor: themeColors.currentBorder,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.2,
-                shadowRadius: 16,
-                elevation: 12,
-            };
-        }
-
-        if (item.isBreak) {
-            return {
-                ...baseStyle,
-                backgroundColor: themeColors.breakBackground,
-                borderColor: themeColors.breakBorder,
-                borderWidth: 1,
-                shadowColor: themeColors.cardDefaultShadow,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 1,
-                shadowRadius: 8,
-                elevation: 4,
-            };
-        }
-
-        return {
-            ...baseStyle,
-            backgroundColor: themeColors.cardDefault,
-            borderColor: themeColors.cardDefaultBorder,
-            borderWidth: 1,
-            shadowColor: themeColors.cardDefaultShadow,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 1,
-            shadowRadius: 12,
-            elevation: 6,
-        };
-    };
-
-    const categoryConfig = getCategoryConfig(item.category);
+    // Callback for handling image errors safely
+    const handleImageError = useCallback(() => {
+        setImageLoadError(true);
+    }, []);
 
     return (
         <>
-            <View style={[{ padding: 24 }, getItemStyles()]}>
-                {/* Category badges */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>
-                    {item.category && (
-                        <View
-                            style={{
-                                paddingHorizontal: 16,
-                                paddingVertical: 8,
-                                borderRadius: 20,
-                                marginRight: 12,
-                                marginBottom: 8,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                backgroundColor: categoryConfig.bg,
-                                borderWidth: 1,
-                                borderColor: categoryConfig.border,
-                            }}
-                        >
-                            <Feather
-                                name={categoryConfig.icon}
-                                size={14}
-                                color={categoryConfig.text}
-                                style={{ marginRight: 6 }}
-                            />
-                            <Text
-                                style={{
-                                    fontFamily: 'Rubik_600SemiBold',
-                                    fontSize: 12,
-                                    color: categoryConfig.text,
-                                    letterSpacing: 0.5,
-                                }}
-                            >
-                                {item.category.toUpperCase()}
-                            </Text>
-                        </View>
-                    )}
-                    {isCurrentItem && (
-                        <Animated.View
-                            style={{
-                                paddingHorizontal: 16,
-                                paddingVertical: 8,
-                                borderRadius: 20,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                backgroundColor: themeColors.timeAccent,
-                                borderWidth: 2,
-                                borderColor: 'rgba(255, 255, 255, 0.3)',
-                                marginBottom: 8,
-                                shadowColor: themeColors.timeAccent,
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.3,
-                                shadowRadius: 8,
-                                elevation: 4,
-                            }}
-                        >
-                            <Animated.View
-                                style={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: 'white',
-                                    marginRight: 8,
-                                }}
-                            />
-                            <Text style={{
-                                color: 'white',
-                                fontFamily: 'Rubik_700Bold',
-                                fontSize: 12,
-                                letterSpacing: 0.5,
-                            }}>
-                                LIVE NOW
-                            </Text>
-                        </Animated.View>
-                    )}
-                </View>
-
-                {/* Title */}
-                <View style={{ marginBottom: 24 }}>
-                    <Text style={{
-                        fontFamily: 'Rubik_700Bold',
-                        fontSize: 24,
-                        lineHeight: 32,
-                        color: themeColors.text,
-                        marginBottom: 8,
+            {/* Enhanced Agenda Item Card */}
+            <TouchableOpacity
+                onPress={item.speaker ? showModal : undefined}
+                disabled={!item.speaker}
+                style={{
+                    backgroundColor: isCurrentItem ? themeColors.currentBackground : (item.isBreak ? themeColors.breakBackground : themeColors.cardDefault),
+                    borderWidth: 1,
+                    borderColor: isCurrentItem ? themeColors.currentBorder : (item.isBreak ? themeColors.breakBorder : themeColors.cardDefaultBorder),
+                    borderRadius: 16,
+                    padding: 20,
+                    marginBottom: 12,
+                    shadowColor: isCurrentItem ? themeColors.currentBorder : '#000',
+                    shadowOffset: { width: 0, height: isCurrentItem ? 6 : 2 },
+                    shadowOpacity: isCurrentItem ? 0.15 : (activeTheme === 'light' ? 0.04 : 0.1),
+                    shadowRadius: isCurrentItem ? 12 : 4,
+                    elevation: isCurrentItem ? 8 : 2,
+                    ...(isCurrentItem && {
+                        shadowColor: themeColors.currentBorder,
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 16,
+                        elevation: 12,
+                    })
+                }}
+            >
+                {/* Time and Category Header */}
+                <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: 12,
+                }}>
+                    <View style={{
+                        backgroundColor: categoryConfig.bg,
+                        borderWidth: 1,
+                        borderColor: categoryConfig.border,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 20,
+                        flexDirection: 'row',
+                        alignItems: 'center',
                     }}>
-                        {item.title}
-                    </Text>
-                </View>
+                        <Feather name={categoryConfig.icon} size={12} color={categoryConfig.text} />
+                        <Text style={{
+                            fontFamily: 'Rubik_600SemiBold',
+                            fontSize: 11,
+                            color: categoryConfig.text,
+                            marginLeft: 6,
+                            letterSpacing: 0.5,
+                        }}>
+                            {item.category ? item.category.toUpperCase() : 'OTHER'}
+                        </Text>
+                    </View>
 
-                {/* Time */}
-                <View style={{ marginBottom: 24 }}>
-                    <View
-                        style={{
-                            paddingHorizontal: 20,
-                            paddingVertical: 16,
-                            borderRadius: 16,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            backgroundColor: themeColors.timeBackground,
-                            borderWidth: 1,
-                            borderColor: 'rgba(232, 92, 41, 0.2)',
-                        }}
-                    >
-                        <Feather
-                            name="clock"
-                            size={20}
-                            color={themeColors.timeAccent}
-                            style={{ marginRight: 12 }}
-                        />
+                    <View style={{
+                        backgroundColor: themeColors.timeBackground,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: `${themeColors.timeAccent}30`,
+                    }}>
                         <Text style={{
                             fontFamily: 'Rubik_700Bold',
-                            fontSize: 18,
-                            color: themeColors.timeAccent
+                            fontSize: 12,
+                            color: themeColors.timeAccent,
+                            letterSpacing: 0.3,
                         }}>
                             {formatTime(item.startTime)} - {formatTime(item.endTime)}
                         </Text>
                     </View>
                 </View>
 
-                {/* Location */}
-                {item.location && (
-                    <View style={{ marginBottom: 24, flexDirection: 'row', alignItems: 'center' }}>
-                        <Feather
-                            name="map-pin"
-                            size={18}
-                            color={themeColors.textTertiary}
-                            style={{ marginRight: 10 }}
-                        />
-                        <Text style={{
-                            fontFamily: 'Rubik_500Medium',
-                            fontSize: 16,
-                            color: themeColors.textSecondary,
-                            flex: 1,
-                        }}>
-                            {item.location}
-                        </Text>
-                    </View>
-                )}
+                {/* Main Content */}
+                <View>
+                    <Text style={{
+                        fontFamily: 'Rubik_700Bold',
+                        fontSize: 18,
+                        color: themeColors.text,
+                        marginBottom: 8,
+                        lineHeight: 24,
+                    }}>
+                        {item.title}
+                    </Text>
 
-                {/* Description */}
-                {item.description && (
-                    <View
-                        style={{
-                            padding: 20,
-                            borderRadius: 16,
-                            marginBottom: 24,
-                            backgroundColor: themeColors.surfaceSecondary,
-                            borderWidth: 1,
-                            borderColor: themeColors.borderLight,
-                        }}
-                    >
+                    {item.description && (
                         <Text style={{
                             fontFamily: 'Rubik_400Regular',
-                            fontSize: 16,
-                            lineHeight: 24,
-                            color: themeColors.textSecondary
+                            fontSize: 14,
+                            color: themeColors.textSecondary,
+                            lineHeight: 20,
+                            marginBottom: 12,
                         }}>
                             {item.description}
                         </Text>
+                    )}
+
+                    {/* Speaker and Location */}
+                    <View style={{ gap: 8 }}>
+                        {item.speaker && (
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                            }}>
+                                <View style={{
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: 12,
+                                    backgroundColor: `${themeColors.timeAccent}20`,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginRight: 10,
+                                }}>
+                                    <Feather name="user" size={12} color={themeColors.timeAccent} />
+                                </View>
+                                <Text style={{
+                                    fontFamily: 'Rubik_500Medium',
+                                    fontSize: 14,
+                                    color: themeColors.textSecondary,
+                                    flex: 1,
+                                }}>
+                                    {item.speaker}
+                                </Text>
+                                {item.speaker && (
+                                    <Text style={{
+                                        fontFamily: 'Rubik_400Regular',
+                                        fontSize: 11,
+                                        color: themeColors.textTertiary,
+                                        fontStyle: 'italic',
+                                    }}>
+                                        Tap to view details
+                                    </Text>
+                                )}
+                            </View>
+                        )}
+
+                        {item.location && (
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                            }}>
+                                <View style={{
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: 12,
+                                    backgroundColor: `${categoryConfig.text}20`,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginRight: 10,
+                                }}>
+                                    <Feather name="map-pin" size={12} color={categoryConfig.text} />
+                                </View>
+                                <Text style={{
+                                    fontFamily: 'Rubik_400Regular',
+                                    fontSize: 14,
+                                    color: themeColors.textTertiary,
+                                }}>
+                                    {item.location}
+                                </Text>
+                            </View>
+                        )}
                     </View>
-                )}
+                </View>
 
-                {/* Speaker */}
-                {item.speaker && (
-                    <TouchableOpacity
-                        onPress={showModal}
-                        activeOpacity={0.7}
-                        style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            padding: 16,
-                            borderRadius: 16,
-                            marginBottom: 24,
-                            backgroundColor: themeColors.surfaceSecondary,
-                            borderWidth: 1,
-                            borderColor: themeColors.borderLight,
-                            shadowColor: themeColors.cardDefaultShadow,
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
-                            elevation: 2,
-                        }}
-                    >
-                        <View style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 24,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginRight: 16,
-                            backgroundColor: 'rgba(59, 130, 246, 0.12)',
-                        }}>
-                            <Feather name="user" size={20} color="#3b82f6" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text style={{
-                                fontFamily: 'Rubik_500Medium',
-                                fontSize: 12,
-                                letterSpacing: 0.5,
-                                color: themeColors.textTertiary,
-                                marginBottom: 4,
-                            }}>
-                                SPEAKER
-                            </Text>
-                            <Text style={{
-                                fontFamily: 'Rubik_600SemiBold',
-                                fontSize: 18,
-                                color: themeColors.text
-                            }}>
-                                {item.speaker}
-                            </Text>
-                        </View>
-                        <Feather name="chevron-right" size={20} color={themeColors.textTertiary} />
-                    </TouchableOpacity>
-                )}
-
-                {/* Break indicator */}
-                {item.isBreak && (
+                {/* Current Item Indicator */}
+                {isCurrentItem && (
                     <View style={{
                         flexDirection: 'row',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 16,
-                        borderRadius: 16,
-                        marginBottom: 24,
-                        backgroundColor: 'rgba(107, 114, 128, 0.08)',
+                        marginTop: 16,
+                        paddingTop: 16,
+                        borderTopWidth: 1,
+                        borderTopColor: themeColors.borderLight,
                     }}>
-                        <Feather
-                            name="coffee"
-                            size={20}
-                            color={themeColors.breakIcon}
-                            style={{ marginRight: 12 }}
-                        />
+                        <View style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: themeColors.timeAccent,
+                            marginRight: 8,
+                        }} />
                         <Text style={{
-                            fontFamily: 'Rubik_500Medium',
-                            fontSize: 16,
-                            color: themeColors.breakIcon
+                            fontFamily: 'Rubik_600SemiBold',
+                            fontSize: 13,
+                            color: themeColors.timeAccent,
+                            letterSpacing: 0.5,
                         }}>
-                            Break Time - Refresh & Network
+                            CURRENTLY LIVE
                         </Text>
                     </View>
                 )}
@@ -588,7 +553,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                         )}
                     </View>
                 )}
-            </View>
+            </TouchableOpacity>
 
             {/* Enhanced Speaker Modal with Blur */}
             <Modal
@@ -609,34 +574,18 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                         tint={activeTheme === 'light' ? 'light' : 'dark'}
                         style={{ flex: 1 }}
                     >
-                        <Pressable
-                            style={{
-                                flex: 1,
-                                justifyContent: 'flex-end',
-                                backgroundColor: themeColors.modalOverlay,
-                            }}
-                            onPress={hideModal}
-                        >
+                        <Pressable style={{ flex: 1 }} onPress={hideModal}>
                             <Animated.View
                                 style={{
+                                    flex: 1,
+                                    justifyContent: 'flex-end',
                                     transform: [
                                         { translateY: slideAnim },
                                         { scale: scaleAnim }
                                     ],
-                                    maxHeight: screenHeight * 0.8,
-                                    width: '100%',
-                                    borderTopLeftRadius: 24,
-                                    borderTopRightRadius: 24,
-                                    backgroundColor: themeColors.modalSurface,
-                                    shadowColor: '#000',
-                                    shadowOffset: { width: 0, height: -4 },
-                                    shadowOpacity: 0.2,
-                                    shadowRadius: 16,
-                                    elevation: 20,
                                 }}
-                                onStartShouldSetResponder={() => true}
                             >
-                                {/* Modal Handle */}
+                                {/* Handle */}
                                 <View style={{
                                     alignItems: 'center',
                                     paddingTop: 12,
@@ -658,6 +607,12 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                         paddingHorizontal: 24,
                                         paddingBottom: 40,
                                     }}
+                                    style={{
+                                        backgroundColor: themeColors.modalSurface,
+                                        borderTopLeftRadius: 24,
+                                        borderTopRightRadius: 24,
+                                        maxHeight: screenHeight * 0.8,
+                                    }}
                                 >
                                     {/* Header */}
                                     <View style={{
@@ -671,37 +626,31 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                                 width: 64,
                                                 height: 64,
                                                 borderRadius: 32,
+                                                backgroundColor: categoryConfig.bg,
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                marginRight: 20,
-                                                backgroundColor: 'rgba(59, 130, 246, 0.12)',
-                                                borderWidth: 2,
-                                                borderColor: 'rgba(59, 130, 246, 0.2)',
+                                                marginRight: 16,
+                                                borderWidth: 1,
+                                                borderColor: categoryConfig.border,
                                             }}
                                         >
-                                            <Feather name="user" size={28} color="#3b82f6" />
+                                            <Feather name="user" size={28} color={categoryConfig.text} />
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text
-                                                style={{
-                                                    fontFamily: 'Rubik_700Bold',
-                                                    fontSize: 24,
-                                                    lineHeight: 32,
-                                                    color: themeColors.text,
-                                                    flexWrap: 'wrap',
-                                                }}
-                                                numberOfLines={2}
-                                            >
+                                            <Text style={{
+                                                fontFamily: 'Rubik_700Bold',
+                                                fontSize: 24,
+                                                color: themeColors.text,
+                                                marginBottom: 4,
+                                            }}>
                                                 {item.speaker}
                                             </Text>
-                                            <Text
-                                                style={{
-                                                    fontFamily: 'Rubik_500Medium',
-                                                    fontSize: 14,
-                                                    color: themeColors.textTertiary,
-                                                    marginTop: 4,
-                                                }}
-                                            >
+                                            <Text style={{
+                                                fontFamily: 'Rubik_500Medium',
+                                                fontSize: 14,
+                                                color: themeColors.textTertiary,
+                                                marginTop: 4,
+                                            }}>
                                                 Speaker
                                             </Text>
                                         </View>
@@ -716,53 +665,140 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                         borderWidth: 1,
                                         borderColor: themeColors.borderLight,
                                     }}>
-                                        <Text
-                                            style={{
-                                                fontFamily: 'Rubik_400Regular',
-                                                fontSize: 16,
-                                                lineHeight: 24,
-                                                color: themeColors.textSecondary,
-                                            }}
-                                        >
+                                        <Text style={{
+                                            fontFamily: 'Rubik_600SemiBold',
+                                            fontSize: 16,
+                                            color: themeColors.text,
+                                            marginBottom: 12,
+                                        }}>
+                                            About the Speaker
+                                        </Text>
+                                        <Text style={{
+                                            fontFamily: 'Rubik_400Regular',
+                                            fontSize: 16,
+                                            lineHeight: 24,
+                                            color: themeColors.textSecondary,
+                                        }}>
                                             {item.speakerBio || 'No biography available for this speaker.'}
                                         </Text>
                                     </View>
 
-                                    {/* Session Info */}
+                                    {/* NEW: Speaker Poster/Image */}
+                                    {item.speakerImage && !imageLoadError && (
+                                        <View style={{
+                                            marginBottom: 24,
+                                            borderRadius: 16,
+                                            overflow: 'hidden',
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.1,
+                                            shadowRadius: 12,
+                                            elevation: 6,
+                                        }}>
+                                            <Image
+                                                source={{ uri: item.speakerImage }}
+                                                style={{
+                                                    width: '100%',
+                                                    height: screenWidth * 0.6, // 16:10 aspect ratio for poster
+                                                }}
+                                                contentFit="cover"
+                                                transition={200}
+                                                onError={handleImageError}
+                                            />
+                                        </View>
+                                    )}
+
+                                    {/* Session Details */}
                                     <View style={{
-                                        backgroundColor: themeColors.timeBackground,
+                                        backgroundColor: themeColors.surfaceElevated,
                                         borderRadius: 16,
                                         padding: 20,
+                                        marginBottom: 24,
                                         borderWidth: 1,
-                                        borderColor: 'rgba(232, 92, 41, 0.2)',
+                                        borderColor: themeColors.border,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: activeTheme === 'light' ? 0.02 : 0.1,
+                                        shadowRadius: 6,
+                                        elevation: 2,
                                     }}>
-                                        <Text
-                                            style={{
-                                                fontFamily: 'Rubik_600SemiBold',
-                                                fontSize: 16,
-                                                color: themeColors.timeAccent,
+                                        <Text style={{
+                                            fontFamily: 'Rubik_600SemiBold',
+                                            fontSize: 16,
+                                            color: themeColors.text,
+                                            marginBottom: 16,
+                                        }}>
+                                            Session Details
+                                        </Text>
+
+                                        <View style={{ marginBottom: 16 }}>
+                                            <Text style={{
+                                                fontFamily: 'Rubik_700Bold',
+                                                fontSize: 20,
+                                                color: themeColors.text,
                                                 marginBottom: 8,
-                                            }}
-                                        >
-                                            {item.title}
-                                        </Text>
-                                        <Text
-                                            style={{
-                                                fontFamily: 'Rubik_500Medium',
-                                                fontSize: 14,
-                                                color: themeColors.timeAccent,
-                                                opacity: 0.8,
-                                            }}
-                                        >
-                                            {formatTime(item.startTime)} - {formatTime(item.endTime)}
-                                        </Text>
+                                                lineHeight: 28,
+                                            }}>
+                                                {item.title}
+                                            </Text>
+                                            {item.description && (
+                                                <Text style={{
+                                                    fontFamily: 'Rubik_400Regular',
+                                                    fontSize: 15,
+                                                    color: themeColors.textSecondary,
+                                                    lineHeight: 22,
+                                                    marginBottom: 16,
+                                                }}>
+                                                    {item.description}
+                                                </Text>
+                                            )}
+                                        </View>
+
+                                        <View style={{ gap: 12 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <Feather name="clock" size={16} color={themeColors.textTertiary} />
+                                                <Text style={{
+                                                    fontFamily: 'Rubik_500Medium',
+                                                    fontSize: 14,
+                                                    color: themeColors.textSecondary,
+                                                    marginLeft: 12,
+                                                }}>
+                                                    {formatTime(item.startTime)} - {formatTime(item.endTime)}
+                                                </Text>
+                                            </View>
+
+                                            {item.location && (
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <Feather name="map-pin" size={16} color={themeColors.textTertiary} />
+                                                    <Text style={{
+                                                        fontFamily: 'Rubik_400Regular',
+                                                        fontSize: 14,
+                                                        color: themeColors.textSecondary,
+                                                        marginLeft: 12,
+                                                    }}>
+                                                        {item.location}
+                                                    </Text>
+                                                </View>
+                                            )}
+
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <Feather name="tag" size={16} color={themeColors.textTertiary} />
+                                                <Text style={{
+                                                    fontFamily: 'Rubik_400Regular',
+                                                    fontSize: 14,
+                                                    color: categoryConfig.text,
+                                                    marginLeft: 12,
+                                                }}>
+                                                    {item.category ? (item.category.charAt(0).toUpperCase() + item.category.slice(1)) : 'Other'}
+                                                </Text>
+                                            </View>
+                                        </View>
                                     </View>
                                 </ScrollView>
 
-                                {/* Close Button */}
+                                {/* Enhanced Close Button */}
                                 <View style={{
-                                    paddingHorizontal: 24,
-                                    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+                                    paddingHorizontal: screenWidth > 400 ? 40 : 24,
                                     paddingTop: 16,
                                     borderTopWidth: 1,
                                     borderTopColor: themeColors.borderLight,

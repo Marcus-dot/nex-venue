@@ -1,4 +1,5 @@
 import ActionButton from '@/components/action-button';
+import ImagePickerComponent from '@/components/image-picker';
 import { TEXT_SIZE } from '@/constants';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
@@ -31,6 +32,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
     const [date, setDate] = useState('');
     const [speaker, setSpeaker] = useState('');
     const [speakerBio, setSpeakerBio] = useState('');
+    const [speakerImage, setSpeakerImage] = useState(''); // NEW: Speaker image state
     const [location, setLocation] = useState('');
     const [category, setCategory] = useState<AgendaItem['category']>('presentation');
     const [isBreak, setIsBreak] = useState(false);
@@ -75,7 +77,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setEndTime(editingItem.endTime);
             setDate(editingItem.date);
             setSpeaker(editingItem.speaker || '');
-            setSpeakerBio(editingItem.speakerBio || ''); // New field for speaker bio
+            setSpeakerBio(editingItem.speakerBio || '');
+            setSpeakerImage(editingItem.speakerImage || ''); // NEW: Load existing speaker image
             setLocation(editingItem.location || '');
             setCategory(editingItem.category || 'presentation');
             setIsBreak(editingItem.isBreak || false);
@@ -87,7 +90,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setEndTime('');
             setDate('');
             setSpeaker('');
-            setSpeakerBio(''); // New field for speaker bio
+            setSpeakerBio('');
+            setSpeakerImage(''); // NEW: Reset speaker image
             setLocation('');
             setCategory('presentation');
             setIsBreak(false);
@@ -126,7 +130,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                 endTime: endTime.trim(),
                 date: date.trim(),
                 speaker: speaker.trim() || undefined,
-                speakerBio: speakerBio.trim() || undefined, // New field for speaker bio
+                speakerBio: speakerBio.trim() || undefined,
+                speakerImage: speakerImage.trim() || undefined, // NEW: Include speaker image
                 location: location.trim() || undefined,
                 category,
                 isBreak,
@@ -221,14 +226,14 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             <TextInput
                                 value={description}
                                 onChangeText={setDescription}
-                                placeholder="Enter description (optional)"
+                                placeholder="Brief description (optional)"
                                 placeholderTextColor={themeColors.textTertiary}
                                 style={{
                                     fontSize: TEXT_SIZE,
                                     minHeight: 80,
                                     backgroundColor: themeColors.input,
                                     color: themeColors.inputText,
-                                    borderColor: themeColors.inputBorder
+                                    borderColor: themeColors.inputBorder,
                                 }}
                                 className="p-3 rounded-lg font-rubik border"
                                 multiline
@@ -236,37 +241,8 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             />
                         </View>
 
-                        {/* Date - Updated with better placeholder */}
-                        <View className="mb-4">
-                            <Text
-                                style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
-                                className="font-rubik-medium mb-2"
-                            >
-                                Date *
-                            </Text>
-                            <TextInput
-                                value={date}
-                                onChangeText={setDate}
-                                placeholder="e.g., 2025-10-02 or Oct 2, 2025"
-                                placeholderTextColor={themeColors.textTertiary}
-                                style={{
-                                    fontSize: TEXT_SIZE,
-                                    backgroundColor: themeColors.input,
-                                    color: themeColors.inputText,
-                                    borderColor: themeColors.inputBorder
-                                }}
-                                className="p-3 rounded-lg font-rubik border"
-                            />
-                            <Text
-                                className="font-rubik text-xs mt-1"
-                                style={{ color: themeColors.textSecondary }}
-                            >
-                                Supports: 2025-10-02, Oct 2 2025, October 2 2025
-                            </Text>
-                        </View>
-
-                        {/* Time Fields - Updated with better placeholders */}
-                        <View className="flex-row gap-4 mb-4">
+                        {/* Time Row */}
+                        <View className="flex-row mb-4 space-x-3">
                             <View className="flex-1">
                                 <Text
                                     style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
@@ -277,7 +253,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 <TextInput
                                     value={startTime}
                                     onChangeText={setStartTime}
-                                    placeholder="e.g., 09:00 or 9:00 AM"
+                                    placeholder="e.g. 09:00 AM"
                                     placeholderTextColor={themeColors.textTertiary}
                                     style={{
                                         fontSize: TEXT_SIZE,
@@ -298,7 +274,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 <TextInput
                                     value={endTime}
                                     onChangeText={setEndTime}
-                                    placeholder="e.g., 10:00 or 10:00 AM"
+                                    placeholder="e.g. 10:00 AM"
                                     placeholderTextColor={themeColors.textTertiary}
                                     style={{
                                         fontSize: TEXT_SIZE,
@@ -311,20 +287,27 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             </View>
                         </View>
 
-                        {/* Helper text for time formats */}
-                        <View
-                            className="mb-4 p-3 rounded-lg border"
-                            style={{
-                                backgroundColor: themeColors.helperBackground,
-                                borderColor: themeColors.helperBorder
-                            }}
-                        >
+                        {/* Date */}
+                        <View className="mb-4">
                             <Text
-                                className="font-rubik text-xs"
-                                style={{ color: themeColors.helperText }}
+                                style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
+                                className="font-rubik-medium mb-2"
                             >
-                                ℹ️ Time formats supported: 24-hour (14:30) or 12-hour (2:30 PM)
+                                Date *
                             </Text>
+                            <TextInput
+                                value={date}
+                                onChangeText={setDate}
+                                placeholder="e.g. 2024-03-15"
+                                placeholderTextColor={themeColors.textTertiary}
+                                style={{
+                                    fontSize: TEXT_SIZE,
+                                    backgroundColor: themeColors.input,
+                                    color: themeColors.inputText,
+                                    borderColor: themeColors.inputBorder
+                                }}
+                                className="p-3 rounded-lg font-rubik border"
+                            />
                         </View>
 
                         {/* Speaker */}
@@ -376,6 +359,35 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             />
                         </View>
 
+                        {/* NEW: Speaker Poster Image Upload */}
+                        {speaker.trim() && (
+                            <View className="mb-4">
+                                <Text
+                                    style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
+                                    className="font-rubik-medium mb-2"
+                                >
+                                    Speaker Poster/Image
+                                </Text>
+                                <ImagePickerComponent
+                                    onImageUploaded={(imageUrl) => setSpeakerImage(imageUrl)}
+                                    onImageRemoved={() => setSpeakerImage('')}
+                                    currentImageUrl={speakerImage}
+                                    disabled={loading}
+                                />
+                                {speakerImage && (
+                                    <Text
+                                        style={{
+                                            fontSize: TEXT_SIZE * 0.7,
+                                            color: themeColors.textTertiary,
+                                            marginTop: 4
+                                        }}
+                                        className="font-rubik"
+                                    >
+                                        Speaker poster uploaded successfully
+                                    </Text>
+                                )}
+                            </View>
+                        )}
 
                         {/* Location */}
                         <View className="mb-4">
@@ -400,7 +412,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             />
                         </View>
 
-                        {/* Category */}
+                        {/* Category Selection */}
                         <View className="mb-4">
                             <Text
                                 style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
@@ -408,15 +420,15 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             >
                                 Category
                             </Text>
-                            <View className="flex-row flex-wrap gap-2">
-                                {categories.map((cat) => (
+                            <View className="flex-row flex-wrap">
+                                {categories.map((cat, index) => (
                                     <TouchableOpacity
                                         key={cat.value}
-                                        onPress={() => setCategory(cat.value)}
-                                        className={`px-3 py-2 rounded-lg border-2 ${category === cat.value
-                                            ? 'bg-accent border-accent'
-                                            : ''
-                                            }`}
+                                        onPress={() => {
+                                            setCategory(cat.value);
+                                            setIsBreak(cat.value === 'break');
+                                        }}
+                                        className="mr-2 mb-2 px-3 py-2 rounded-lg border"
                                         style={{
                                             backgroundColor: category === cat.value ? '#e85c29' : themeColors.input,
                                             borderColor: category === cat.value ? '#e85c29' : themeColors.inputBorder

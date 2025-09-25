@@ -118,28 +118,45 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
         return true;
     };
 
+    // ✅ FIXED: handleSave function without undefined values
     const handleSave = async () => {
         if (!validateForm() || !user) return;
 
         setLoading(true);
         try {
-            const itemData: Omit<AgendaItem, 'id' | 'eventId' | 'createdAt' | 'updatedAt'> = {
+            // Build itemData without undefined values
+            const itemData: any = {
                 title: title.trim(),
-                description: description.trim() || undefined,
                 startTime: startTime.trim(),
                 endTime: endTime.trim(),
                 date: date.trim(),
-                speaker: speaker.trim() || undefined,
-                speakerBio: speakerBio.trim() || undefined,
-                speakerImage: speakerImage.trim() || undefined, // NEW: Include speaker image
-                location: location.trim() || undefined,
                 category,
                 isBreak,
-                // Order will be auto-calculated in the service
-                order: editingItem?.order || 1, // Placeholder - will be calculated correctly
+                order: editingItem?.order || 1,
                 createdBy: editingItem?.createdBy || user.uid,
                 lastEditedBy: user.uid,
             };
+
+            // Only add optional fields if they have values (don't use || undefined)
+            if (description.trim()) {
+                itemData.description = description.trim();
+            }
+
+            if (speaker.trim()) {
+                itemData.speaker = speaker.trim();
+            }
+
+            if (speakerBio.trim()) {
+                itemData.speakerBio = speakerBio.trim();
+            }
+
+            if (speakerImage.trim()) {
+                itemData.speakerImage = speakerImage.trim();
+            }
+
+            if (location.trim()) {
+                itemData.location = location.trim();
+            }
 
             if (editingItem) {
                 await agendaService.updateAgendaItem(editingItem.id, itemData, user.uid);
@@ -169,29 +186,30 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                 style={{ backgroundColor: themeColors.background }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <SafeAreaView className="flex-1">
+                <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
                     {/* Header */}
                     <View
-                        className="flex-row justify-between items-center p-4 border-b"
-                        style={{ borderBottomColor: themeColors.border }}
+                        className="flex-row items-center justify-between px-6 py-4 border-b"
+                        style={{ borderColor: themeColors.border }}
                     >
-                        <Text
-                            className="font-rubik-bold text-xl"
-                            style={{ color: themeColors.text }}
-                        >
-                            {editingItem ? 'Edit Agenda Item' : 'Add Agenda Item'}
-                        </Text>
                         <TouchableOpacity onPress={onClose}>
                             <Text
-                                className="font-rubik-semibold"
-                                style={{ color: themeColors.textSecondary }}
+                                style={{ fontSize: TEXT_SIZE, color: themeColors.textSecondary }}
+                                className="font-rubik"
                             >
                                 Cancel
                             </Text>
                         </TouchableOpacity>
+                        <Text
+                            style={{ fontSize: TEXT_SIZE * 1.1, color: themeColors.text }}
+                            className="font-rubik-bold"
+                        >
+                            {editingItem ? 'Edit Agenda Item' : 'Add Agenda Item'}
+                        </Text>
+                        <View style={{ width: 60 }} />
                     </View>
 
-                    <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
+                    <ScrollView className="flex-1 px-6 py-6">
                         {/* Title */}
                         <View className="mb-4">
                             <Text
@@ -203,7 +221,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             <TextInput
                                 value={title}
                                 onChangeText={setTitle}
-                                placeholder="Enter agenda item title"
+                                placeholder="Session title"
                                 placeholderTextColor={themeColors.textTertiary}
                                 style={{
                                     fontSize: TEXT_SIZE,
@@ -274,7 +292,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 <TextInput
                                     value={endTime}
                                     onChangeText={setEndTime}
-                                    placeholder="e.g. 10:00 AM"
+                                    placeholder="e.g. 10:30 AM"
                                     placeholderTextColor={themeColors.textTertiary}
                                     style={{
                                         fontSize: TEXT_SIZE,
@@ -298,7 +316,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             <TextInput
                                 value={date}
                                 onChangeText={setDate}
-                                placeholder="e.g. 2024-03-15"
+                                placeholder="e.g. 2025-01-15"
                                 placeholderTextColor={themeColors.textTertiary}
                                 style={{
                                     fontSize: TEXT_SIZE,
@@ -400,7 +418,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             <TextInput
                                 value={location}
                                 onChangeText={setLocation}
-                                placeholder="Room/venue (optional)"
+                                placeholder="Venue or room (optional)"
                                 placeholderTextColor={themeColors.textTertiary}
                                 style={{
                                     fontSize: TEXT_SIZE,
@@ -412,7 +430,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             />
                         </View>
 
-                        {/* Category Selection */}
+                        {/* Category */}
                         <View className="mb-4">
                             <Text
                                 style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
@@ -420,60 +438,75 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             >
                                 Category
                             </Text>
-                            <View className="flex-row flex-wrap">
-                                {categories.map((cat, index) => (
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                className="flex-row space-x-2"
+                            >
+                                {categories.map((cat) => (
                                     <TouchableOpacity
                                         key={cat.value}
-                                        onPress={() => {
-                                            setCategory(cat.value);
-                                            setIsBreak(cat.value === 'break');
-                                        }}
-                                        className="mr-2 mb-2 px-3 py-2 rounded-lg border"
+                                        onPress={() => setCategory(cat.value)}
                                         style={{
-                                            backgroundColor: category === cat.value ? '#e85c29' : themeColors.input,
-                                            borderColor: category === cat.value ? '#e85c29' : themeColors.inputBorder
+                                            backgroundColor: category === cat.value
+                                                ? '#e85c29'
+                                                : themeColors.surface,
+                                            borderColor: category === cat.value
+                                                ? '#e85c29'
+                                                : themeColors.border,
                                         }}
+                                        className="px-3 py-2 rounded-lg border mr-2"
                                     >
                                         <Text
-                                            className="font-rubik"
                                             style={{
                                                 fontSize: TEXT_SIZE * 0.8,
-                                                color: category === cat.value ? 'white' : themeColors.text
+                                                color: category === cat.value
+                                                    ? 'white'
+                                                    : themeColors.text
                                             }}
+                                            className="font-rubik"
                                         >
                                             {cat.label}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
-                            </View>
+                            </ScrollView>
                         </View>
 
                         {/* Break Toggle */}
                         <View className="mb-6">
                             <TouchableOpacity
                                 onPress={() => setIsBreak(!isBreak)}
-                                className={`p-3 rounded-lg border-2 flex-row justify-between items-center ${isBreak ? 'bg-accent border-accent' : ''
-                                    }`}
-                                style={{
-                                    backgroundColor: isBreak ? '#e85c29' : themeColors.input,
-                                    borderColor: isBreak ? '#e85c29' : themeColors.inputBorder
-                                }}
+                                className="flex-row items-center"
                             >
+                                <View
+                                    style={{
+                                        width: 20,
+                                        height: 20,
+                                        borderRadius: 10,
+                                        borderWidth: 2,
+                                        borderColor: isBreak ? '#e85c29' : themeColors.border,
+                                        backgroundColor: isBreak ? '#e85c29' : 'transparent',
+                                        marginRight: 12,
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            fontSize: 12,
+                                            fontWeight: 'bold',
+                                            color: isBreak ? 'white' : themeColors.text
+                                        }}
+                                    >
+                                        {isBreak ? '✓' : '○'}
+                                    </Text>
+                                </View>
                                 <Text
+                                    style={{ fontSize: TEXT_SIZE * 0.85, color: themeColors.text }}
                                     className="font-rubik"
-                                    style={{
-                                        color: isBreak ? 'white' : themeColors.text
-                                    }}
                                 >
-                                    This is a break/intermission
-                                </Text>
-                                <Text
-                                    className="font-rubik-bold"
-                                    style={{
-                                        color: isBreak ? 'white' : themeColors.text
-                                    }}
-                                >
-                                    {isBreak ? '✓' : '○'}
+                                    Mark as break (coffee, lunch, etc.)
                                 </Text>
                             </TouchableOpacity>
                         </View>

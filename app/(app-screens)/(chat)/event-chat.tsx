@@ -1,10 +1,10 @@
-import BackNav from '@/components/back-nav';
 import MessageItem from '@/components/chat/message-item';
 import { TEXT_SIZE } from '@/constants';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { chatService } from '@/services/chat';
 import { ChatMessage } from '@/types/chat';
+import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -125,89 +125,97 @@ const EventChat = () => {
         const currentMessage = messages[index];
         const previousMessage = messages[index - 1];
 
-        // Check if same sender and messages are within 5 minutes of each other
+        const timeDiff = currentMessage.timestamp - previousMessage.timestamp;
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+
         return (
             currentMessage.senderId === previousMessage.senderId &&
-            currentMessage.timestamp - previousMessage.timestamp < 5 * 60 * 1000 &&
-            currentMessage.type !== 'system' &&
-            previousMessage.type !== 'system'
+            timeDiff < fiveMinutes
         );
     };
 
-    if (loading) {
-        return (
-            <View
-                className="flex-1 items-center justify-center"
-                style={{ backgroundColor: themeColors.background }}
-            >
-                <ActivityIndicator size="large" color="#e85c29" />
-                <Text
-                    className="font-rubik mt-4"
-                    style={{ color: themeColors.text }}
-                >
-                    Loading chat...
-                </Text>
-            </View>
-        );
-    }
-
+    // ✅ FIXED: Proper KeyboardAvoidingView structure
     return (
-        <KeyboardAvoidingView
-            className="flex-1"
-            style={{ backgroundColor: themeColors.background }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <SafeAreaView className="flex-1">
+        <SafeAreaView className="flex-1" style={{ backgroundColor: themeColors.background }}>
+            <KeyboardAvoidingView
+                className="flex-1"
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25} // Adjust offset as needed
+            >
                 {/* Header */}
-                <BackNav
-                    title={eventTitle || 'Event Chat'}
-                    handlePress={() => router.back()}
-                    backgroundColor={themeColors.background}
-                    textColor={themeColors.text}
-                    iconColor={themeColors.text}
-                    elevation={true}
-                />
+                <View
+                    className="flex-row items-center justify-between px-6 py-4 border-b"
+                    style={{ borderBottomColor: themeColors.border }}
+                >
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <Feather name="arrow-left" size={24} color={themeColors.text} />
+                    </TouchableOpacity>
+                    <Text
+                        className="font-rubik-bold text-lg"
+                        style={{ color: themeColors.text }}
+                    >
+                        {eventTitle || 'Event Chat'}
+                    </Text>
+                    <View style={{ width: 24 }} />
+                </View>
 
                 {/* Messages */}
-                <ScrollView
-                    ref={scrollViewRef}
-                    className="flex-1"
-                    showsVerticalScrollIndicator={false}
-                    onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
-                >
-                    <View className="py-4">
-                        {messages.length === 0 ? (
-                            <View className="items-center justify-center py-20">
-                                <Text
-                                    className="font-rubik text-lg mb-2"
-                                    style={{ color: themeColors.emptyStateText }}
-                                >
-                                    No messages yet
-                                </Text>
-                                <Text
-                                    className="font-rubik text-sm text-center px-8"
-                                    style={{ color: themeColors.textTertiary }}
-                                >
-                                    Start a conversation with other event attendees!
-                                </Text>
-                            </View>
-                        ) : (
-                            messages.map((message, index) => (
-                                <MessageItem
-                                    key={message.id}
-                                    message={message}
-                                    isConsecutive={isConsecutiveMessage(index)}
-                                    showSenderInfo={true}
-                                />
-                            ))
-                        )}
-                    </View>
-                </ScrollView>
+                <View className="flex-1">
+                    <ScrollView
+                        ref={scrollViewRef}
+                        className="flex-1 px-4"
+                        contentContainerStyle={{ paddingVertical: 16 }}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        <View className="space-y-2">
+                            {loading ? (
+                                <View className="flex-1 items-center justify-center py-12">
+                                    <ActivityIndicator size="large" color="#e85c29" />
+                                    <Text
+                                        className="font-rubik text-center mt-4"
+                                        style={{ color: themeColors.textSecondary }}
+                                    >
+                                        Loading messages...
+                                    </Text>
+                                </View>
+                            ) : messages.length === 0 ? (
+                                <View className="flex-1 items-center justify-center py-12">
+                                    <Feather name="message-circle" size={48} color={themeColors.emptyStateText} />
+                                    <Text
+                                        className="font-rubik-medium text-lg text-center mt-4"
+                                        style={{ color: themeColors.text }}
+                                    >
+                                        Start the conversation!
+                                    </Text>
+                                    <Text
+                                        className="font-rubik text-center mt-2"
+                                        style={{ color: themeColors.emptyStateText }}
+                                    >
+                                        Be the first to send a message in this chat.
+                                    </Text>
+                                </View>
+                            ) : (
+                                messages.map((message, index) => (
+                                    <MessageItem
+                                        key={message.id}
+                                        message={message}
+                                        isConsecutive={isConsecutiveMessage(index)}
+                                        showSenderInfo={true}
+                                    />
+                                ))
+                            )}
+                        </View>
+                    </ScrollView>
+                </View>
 
-                {/* Message Input */}
+                {/* ✅ FIXED: Message Input with proper positioning */}
                 <View
-                    className="border-t p-4"
-                    style={{ borderTopColor: themeColors.border }}
+                    className="border-t px-4 py-3"
+                    style={{
+                        borderTopColor: themeColors.border,
+                        backgroundColor: themeColors.background // Ensure background color
+                    }}
                 >
                     <View className="flex-row items-end space-x-3">
                         <View className="flex-1">
@@ -220,24 +228,23 @@ const EventChat = () => {
                                     fontSize: TEXT_SIZE * 0.9,
                                     backgroundColor: themeColors.input,
                                     color: themeColors.inputText,
-                                    borderColor: themeColors.inputBorder
+                                    borderColor: themeColors.inputBorder,
+                                    maxHeight: 100, // Limit multiline height
                                 }}
                                 className="px-4 py-3 rounded-2xl font-rubik border"
                                 multiline
                                 maxLength={500}
-                                textAlignVertical="center"
+                                textAlignVertical="top"
                                 onSubmitEditing={sendMessage}
                                 blurOnSubmit={false}
+                                returnKeyType="send"
                             />
                         </View>
 
                         <TouchableOpacity
                             onPress={sendMessage}
                             disabled={!inputMessage.trim() || sending}
-                            className={`w-12 h-12 rounded-full items-center justify-center ${inputMessage.trim() && !sending
-                                ? 'bg-accent'
-                                : ''
-                                }`}
+                            className="w-12 h-12 rounded-full items-center justify-center"
                             style={{
                                 backgroundColor: inputMessage.trim() && !sending
                                     ? themeColors.sendButtonActive
@@ -252,8 +259,8 @@ const EventChat = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </SafeAreaView>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 

@@ -699,9 +699,9 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                                 source={{ uri: item.speakerImage }}
                                                 style={{
                                                     width: '100%',
-                                                    height: screenWidth * 0.6, // 16:10 aspect ratio for poster
+                                                    height: screenWidth * 0.5, // 16:10 aspect ratio for poster
                                                 }}
-                                                contentFit="cover"
+                                                contentFit="contain"
                                                 transition={200}
                                                 onError={handleImageError}
                                             />

@@ -57,18 +57,17 @@ const DirectChat = () => {
         inputText: activeTheme === 'light' ? '#1f2937' : '#ffffff',
         sendButton: activeTheme === 'light' ? '#9ca3af' : '#6b7280',
         sendButtonActive: '#e85c29',
-        emptyStateText: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
-        avatarBackground: '#e85c29'
+        emptyStateText: activeTheme === 'light' ? '#6b7280' : '#9ca3af'
     };
 
     useEffect(() => {
         if (!recipientId || !user) return;
 
-        // Generate conversation ID
+        // Generate conversation ID using chat service
         const convId = chatService.generateConversationId(user.uid, recipientId);
         setConversationId(convId);
 
-        // Subscribe to real-time messages
+        // ✅ FIXED: Subscribe to direct messages (2 parameters)
         const unsubscribe = chatService.subscribeToDirectMessages(convId, (newMessages) => {
             setMessages(newMessages);
             setLoading(false);
@@ -97,14 +96,15 @@ const DirectChat = () => {
         setSending(true);
 
         try {
+            // ✅ FIXED: Send direct message with all 7 required parameters
             await chatService.sendDirectMessage(
-                recipientId!,
-                user.uid,
-                userProfile.fullName || 'Anonymous',
-                userProfile.phoneNumber || '',
-                recipientName!,
-                recipientPhone!,
-                messageText
+                recipientId!,                              // recipientId
+                user.uid,                                  // senderId
+                userProfile.fullName || 'Anonymous',      // senderName
+                userProfile.phoneNumber || '',            // senderPhone
+                recipientName || 'User',                  // recipientName
+                recipientPhone || '',                     // recipientPhone
+                messageText                               // message
             );
         } catch (error) {
             console.error('Error sending direct message:', error);
@@ -120,123 +120,104 @@ const DirectChat = () => {
         const currentMessage = messages[index];
         const previousMessage = messages[index - 1];
 
-        // Check if same sender and messages are within 5 minutes of each other
+        const timeDiff = currentMessage.timestamp - previousMessage.timestamp;
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+
         return (
             currentMessage.senderId === previousMessage.senderId &&
-            currentMessage.timestamp - previousMessage.timestamp < 5 * 60 * 1000 &&
-            currentMessage.type !== 'system' &&
-            previousMessage.type !== 'system'
+            timeDiff < fiveMinutes
         );
     };
 
-    if (loading) {
-        return (
-            <View
-                className="flex-1 items-center justify-center"
-                style={{ backgroundColor: themeColors.background }}
-            >
-                <ActivityIndicator size="large" color="#e85c29" />
-                <Text
-                    className="font-rubik mt-4"
-                    style={{ color: themeColors.text }}
-                >
-                    Loading chat...
-                </Text>
-            </View>
-        );
-    }
-
     return (
-        <KeyboardAvoidingView
-            className="flex-1"
-            style={{ backgroundColor: themeColors.background }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <SafeAreaView className="flex-1">
+        <SafeAreaView className="flex-1" style={{ backgroundColor: themeColors.background }}>
+            <KeyboardAvoidingView
+                className="flex-1"
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
+            >
                 {/* Header */}
                 <View
-                    className="flex-row items-center p-4 border-b"
+                    className="flex-row items-center justify-between px-6 py-4 border-b"
                     style={{ borderBottomColor: themeColors.border }}
                 >
-                    <TouchableOpacity onPress={() => router.back()} className="mr-4">
+                    <TouchableOpacity onPress={() => router.back()}>
                         <Feather name="arrow-left" size={24} color={themeColors.text} />
                     </TouchableOpacity>
-
-                    {/* Recipient info */}
-                    <View className="flex-1 flex-row items-center">
-                        <View
-                            className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                            style={{ backgroundColor: themeColors.avatarBackground }}
+                    <View className="flex-1 items-center">
+                        <Text
+                            className="font-rubik-bold text-lg"
+                            style={{ color: themeColors.text }}
                         >
-                            <Text className="text-white font-rubik-semibold text-sm">
-                                {recipientPhone?.slice(-1) || 'U'}
-                            </Text>
-                        </View>
-                        <View>
-                            <Text
-                                className="font-rubik-semibold text-lg"
-                                style={{ color: themeColors.text }}
-                            >
-                                {recipientName}
-                            </Text>
-                            <Text
-                                className="font-rubik text-sm"
-                                style={{ color: themeColors.textSecondary }}
-                            >
-                                Direct Message
-                            </Text>
-                        </View>
+                            {recipientName}
+                        </Text>
+                        <Text
+                            className="font-rubik text-sm"
+                            style={{ color: themeColors.textSecondary }}
+                        >
+                            {recipientPhone}
+                        </Text>
                     </View>
+                    <View style={{ width: 24 }} />
                 </View>
 
                 {/* Messages */}
-                <ScrollView
-                    ref={scrollViewRef}
-                    className="flex-1"
-                    showsVerticalScrollIndicator={false}
-                    onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
-                >
-                    <View className="py-4">
-                        {messages.length === 0 ? (
-                            <View className="items-center justify-center py-20">
-                                <View
-                                    className="w-16 h-16 rounded-full items-center justify-center mb-4"
-                                    style={{ backgroundColor: themeColors.avatarBackground }}
-                                >
-                                    <Text className="text-white font-rubik-bold text-2xl">
-                                        {recipientPhone?.slice(-1) || 'U'}
+                <View className="flex-1">
+                    <ScrollView
+                        ref={scrollViewRef}
+                        className="flex-1 px-4"
+                        contentContainerStyle={{ paddingVertical: 16 }}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        <View className="space-y-2">
+                            {loading ? (
+                                <View className="flex-1 items-center justify-center py-12">
+                                    <ActivityIndicator size="large" color="#e85c29" />
+                                    <Text
+                                        className="font-rubik text-center mt-4"
+                                        style={{ color: themeColors.textSecondary }}
+                                    >
+                                        Loading messages...
                                     </Text>
                                 </View>
-                                <Text
-                                    className="font-rubik-bold text-lg mb-2"
-                                    style={{ color: themeColors.text }}
-                                >
-                                    Start chatting with {recipientName}
-                                </Text>
-                                <Text
-                                    className="font-rubik text-sm text-center px-8"
-                                    style={{ color: themeColors.textSecondary }}
-                                >
-                                    This is the beginning of your direct message conversation.
-                                </Text>
-                            </View>
-                        ) : (
-                            messages.map((message, index) => (
-                                <MessageItem
-                                    key={message.id}
-                                    message={message}
-                                    isConsecutive={isConsecutiveMessage(index)}
-                                    showSenderInfo={false} // Don't show sender names in DMs
-                                />
-                            ))
-                        )}
-                    </View>
-                </ScrollView>
+                            ) : messages.length === 0 ? (
+                                <View className="flex-1 items-center justify-center py-12">
+                                    <Feather name="message-circle" size={48} color={themeColors.emptyStateText} />
+                                    <Text
+                                        className="font-rubik-medium text-lg text-center mt-4"
+                                        style={{ color: themeColors.text }}
+                                    >
+                                        Start your conversation
+                                    </Text>
+                                    <Text
+                                        className="font-rubik text-center mt-2 px-8"
+                                        style={{ color: themeColors.emptyStateText }}
+                                    >
+                                        Send a direct message to {recipientName}
+                                    </Text>
+                                </View>
+                            ) : (
+                                messages.map((message, index) => (
+                                    <MessageItem
+                                        key={message.id}
+                                        message={message}
+                                        isConsecutive={isConsecutiveMessage(index)}
+                                        showSenderInfo={false} // Don't show sender names in DMs
+                                    />
+                                ))
+                            )}
+                        </View>
+                    </ScrollView>
+                </View>
 
                 {/* Message Input */}
                 <View
-                    className="border-t p-4"
-                    style={{ borderTopColor: themeColors.border }}
+                    className="border-t px-4 py-3"
+                    style={{
+                        borderTopColor: themeColors.border,
+                        backgroundColor: themeColors.background
+                    }}
                 >
                     <View className="flex-row items-end space-x-3">
                         <View className="flex-1">
@@ -249,24 +230,23 @@ const DirectChat = () => {
                                     fontSize: TEXT_SIZE * 0.9,
                                     backgroundColor: themeColors.input,
                                     color: themeColors.inputText,
-                                    borderColor: themeColors.inputBorder
+                                    borderColor: themeColors.inputBorder,
+                                    maxHeight: 100, // Limit multiline height
                                 }}
                                 className="px-4 py-3 rounded-2xl font-rubik border"
                                 multiline
                                 maxLength={500}
-                                textAlignVertical="center"
+                                textAlignVertical="top"
                                 onSubmitEditing={sendMessage}
                                 blurOnSubmit={false}
+                                returnKeyType="send"
                             />
                         </View>
 
                         <TouchableOpacity
                             onPress={sendMessage}
                             disabled={!inputMessage.trim() || sending}
-                            className={`w-12 h-12 rounded-full items-center justify-center ${inputMessage.trim() && !sending
-                                ? 'bg-accent'
-                                : ''
-                                }`}
+                            className="w-12 h-12 rounded-full items-center justify-center"
                             style={{
                                 backgroundColor: inputMessage.trim() && !sending
                                     ? themeColors.sendButtonActive
@@ -281,8 +261,8 @@ const DirectChat = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </SafeAreaView>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 

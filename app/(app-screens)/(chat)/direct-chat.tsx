@@ -1,3 +1,4 @@
+// app/(app-screens)/(chat)/direct-chat.tsx
 import MessageItem from '@/components/chat/message-item';
 import { TEXT_SIZE } from '@/constants';
 import { useAuth } from '@/context/auth-context';
@@ -10,14 +11,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const DirectChat = () => {
@@ -41,7 +40,7 @@ const DirectChat = () => {
     const [sending, setSending] = useState(false);
     const [conversationId, setConversationId] = useState<string>('');
 
-    const scrollViewRef = useRef<ScrollView>(null);
+    const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
 
     // Theme-aware colors
     const themeColors = {
@@ -67,14 +66,14 @@ const DirectChat = () => {
         const convId = chatService.generateConversationId(user.uid, recipientId);
         setConversationId(convId);
 
-        // ✅ FIXED: Subscribe to direct messages (2 parameters)
+        // Subscribe to direct messages
         const unsubscribe = chatService.subscribeToDirectMessages(convId, (newMessages) => {
             setMessages(newMessages);
             setLoading(false);
 
             // Scroll to bottom when new messages arrive
             setTimeout(() => {
-                scrollViewRef.current?.scrollToEnd({ animated: true });
+                scrollViewRef.current?.scrollToEnd(true);
             }, 100);
         });
 
@@ -96,15 +95,14 @@ const DirectChat = () => {
         setSending(true);
 
         try {
-            // ✅ FIXED: Send direct message with all 7 required parameters
             await chatService.sendDirectMessage(
-                recipientId!,                              // recipientId
-                user.uid,                                  // senderId
-                userProfile.fullName || 'Anonymous',      // senderName
-                userProfile.phoneNumber || '',            // senderPhone
-                recipientName || 'User',                  // recipientName
-                recipientPhone || '',                     // recipientPhone
-                messageText                               // message
+                recipientId!,
+                user.uid,
+                userProfile.fullName || 'Anonymous',
+                userProfile.phoneNumber || '',
+                recipientName || 'User',
+                recipientPhone || '',
+                messageText
             );
         } catch (error) {
             console.error('Error sending direct message:', error);
@@ -131,87 +129,88 @@ const DirectChat = () => {
 
     return (
         <SafeAreaView className="flex-1" style={{ backgroundColor: themeColors.background }}>
-            <KeyboardAvoidingView
-                className="flex-1"
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 25}
+            {/* Header */}
+            <View
+                className="flex-row items-center justify-between px-6 py-4 border-b"
+                style={{ borderBottomColor: themeColors.border }}
             >
-                {/* Header */}
-                <View
-                    className="flex-row items-center justify-between px-6 py-4 border-b"
-                    style={{ borderBottomColor: themeColors.border }}
-                >
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Feather name="arrow-left" size={24} color={themeColors.text} />
-                    </TouchableOpacity>
-                    <View className="flex-1 items-center">
-                        <Text
-                            className="font-rubik-bold text-lg"
-                            style={{ color: themeColors.text }}
-                        >
-                            {recipientName}
-                        </Text>
-                        <Text
-                            className="font-rubik text-sm"
-                            style={{ color: themeColors.textSecondary }}
-                        >
-                            {recipientPhone}
-                        </Text>
-                    </View>
-                    <View style={{ width: 24 }} />
-                </View>
-
-                {/* Messages */}
-                <View className="flex-1">
-                    <ScrollView
-                        ref={scrollViewRef}
-                        className="flex-1 px-4"
-                        contentContainerStyle={{ paddingVertical: 16 }}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Feather name="arrow-left" size={24} color={themeColors.text} />
+                </TouchableOpacity>
+                <View className="flex-1 items-center">
+                    <Text
+                        className="font-rubik-bold text-lg"
+                        style={{ color: themeColors.text }}
                     >
-                        <View className="space-y-2">
-                            {loading ? (
-                                <View className="flex-1 items-center justify-center py-12">
-                                    <ActivityIndicator size="large" color="#e85c29" />
-                                    <Text
-                                        className="font-rubik text-center mt-4"
-                                        style={{ color: themeColors.textSecondary }}
-                                    >
-                                        Loading messages...
-                                    </Text>
-                                </View>
-                            ) : messages.length === 0 ? (
-                                <View className="flex-1 items-center justify-center py-12">
-                                    <Feather name="message-circle" size={48} color={themeColors.emptyStateText} />
-                                    <Text
-                                        className="font-rubik-medium text-lg text-center mt-4"
-                                        style={{ color: themeColors.text }}
-                                    >
-                                        Start your conversation
-                                    </Text>
-                                    <Text
-                                        className="font-rubik text-center mt-2 px-8"
-                                        style={{ color: themeColors.emptyStateText }}
-                                    >
-                                        Send a direct message to {recipientName}
-                                    </Text>
-                                </View>
-                            ) : (
-                                messages.map((message, index) => (
-                                    <MessageItem
-                                        key={message.id}
-                                        message={message}
-                                        isConsecutive={isConsecutiveMessage(index)}
-                                        showSenderInfo={false} // Don't show sender names in DMs
-                                    />
-                                ))
-                            )}
-                        </View>
-                    </ScrollView>
+                        {recipientName}
+                    </Text>
+                    <Text
+                        className="font-rubik text-sm"
+                        style={{ color: themeColors.textSecondary }}
+                    >
+                        {recipientPhone}
+                    </Text>
+                </View>
+                <View style={{ width: 24 }} />
+            </View>
+
+            {/* Messages and Input - All handled by KeyboardAwareScrollView */}
+            <KeyboardAwareScrollView
+                ref={scrollViewRef}
+                className="flex-1"
+                contentContainerStyle={{ flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                enableOnAndroid={true}
+                enableAutomaticScroll={true}
+                extraHeight={150}
+                extraScrollHeight={150}
+                keyboardOpeningTime={250}
+                style={{ flex: 1 }}
+            >
+                {/* Messages */}
+                <View className="flex-1 px-4" style={{ paddingVertical: 16 }}>
+                    <View className="space-y-2">
+                        {loading ? (
+                            <View className="flex-1 items-center justify-center py-12">
+                                <ActivityIndicator size="large" color="#e85c29" />
+                                <Text
+                                    className="font-rubik text-center mt-4"
+                                    style={{ color: themeColors.textSecondary }}
+                                >
+                                    Loading messages...
+                                </Text>
+                            </View>
+                        ) : messages.length === 0 ? (
+                            <View className="flex-1 items-center justify-center py-12">
+                                <Feather name="message-circle" size={48} color={themeColors.emptyStateText} />
+                                <Text
+                                    className="font-rubik-medium text-lg text-center mt-4"
+                                    style={{ color: themeColors.text }}
+                                >
+                                    Start your conversation
+                                </Text>
+                                <Text
+                                    className="font-rubik text-center mt-2 px-8"
+                                    style={{ color: themeColors.emptyStateText }}
+                                >
+                                    Send a direct message to {recipientName}
+                                </Text>
+                            </View>
+                        ) : (
+                            messages.map((message, index) => (
+                                <MessageItem
+                                    key={message.id}
+                                    message={message}
+                                    isConsecutive={isConsecutiveMessage(index)}
+                                    showSenderInfo={false}
+                                />
+                            ))
+                        )}
+                    </View>
                 </View>
 
-                {/* Message Input */}
+                {/* Message Input - Inside KeyboardAwareScrollView */}
                 <View
                     className="border-t px-4 py-3"
                     style={{
@@ -231,7 +230,7 @@ const DirectChat = () => {
                                     backgroundColor: themeColors.input,
                                     color: themeColors.inputText,
                                     borderColor: themeColors.inputBorder,
-                                    maxHeight: 100, // Limit multiline height
+                                    maxHeight: 100,
                                 }}
                                 className="px-4 py-3 rounded-2xl font-rubik border"
                                 multiline
@@ -261,7 +260,7 @@ const DirectChat = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </KeyboardAvoidingView>
+            </KeyboardAwareScrollView>
         </SafeAreaView>
     );
 };

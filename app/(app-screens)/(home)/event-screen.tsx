@@ -1,6 +1,8 @@
 import AgendaFormModal from '@/components/agenda/agenda-form-modal';
 import AgendaList from '@/components/agenda/agenda-list';
 import ImagePickerComponent from '@/components/image-picker';
+import ConnectModal from '@/components/modals/connect-modal';
+import ProfileModal from '@/components/modals/profile-modal';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { chatService } from '@/services/chat';
@@ -49,6 +51,11 @@ const EventScreen = () => {
   const [editImageUrl, setEditImageUrl] = useState('');
   const [editLoading, setEditLoading] = useState(false);
   const [editFormErrors, setEditFormErrors] = useState<{ [key: string]: string }>({});
+
+  // Custom modals state
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedAttendee, setSelectedAttendee] = useState<AttendeeInfo | null>(null);
 
   // Agenda related state
   const [activeTab, setActiveTab] = useState<'details' | 'agenda' | 'attendees' | 'chat'>('details');
@@ -536,61 +543,8 @@ const EventScreen = () => {
 
   const AttendeeCard = ({ attendee }: { attendee: AttendeeInfo }) => {
     const handleConnect = (attendee: AttendeeInfo) => {
-      Alert.alert(
-        `Connect with ${attendee.fullName}`,
-        `Choose how you'd like to connect with ${attendee.fullName}:`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'View Contact',
-            onPress: () => {
-              Alert.alert(
-                'Contact Information',
-                `Name: ${attendee.fullName}\nPhone: ${attendee.phoneNumber}`,
-                [
-                  { text: 'Close', style: 'cancel' },
-                  {
-                    text: 'Start Chat',
-                    onPress: () => {
-                      router.push({
-                        pathname: '/(app-screens)/(chat)/direct-chat' as any,
-                        params: {
-                          recipientId: attendee.uid,
-                          recipientName: attendee.fullName,
-                          recipientPhone: attendee.phoneNumber
-                        }
-                      });
-                    }
-                  }
-                ]
-              );
-            }
-          },
-          {
-            text: 'Start Direct Chat',
-            onPress: () => {
-              router.push({
-                pathname: '/(app-screens)/(chat)/direct-chat' as any,
-                params: {
-                  recipientId: attendee.uid,
-                  recipientName: attendee.fullName,
-                  recipientPhone: attendee.phoneNumber
-                }
-              });
-            }
-          },
-          {
-            text: 'Share My Info',
-            onPress: () => {
-              Alert.alert(
-                'Share Contact Info',
-                `Your contact information:\nName: ${userProfile?.fullName || 'Anonymous'}\nPhone: ${userProfile?.phoneNumber || 'Not available'}\n\nNote: Contact sharing notifications will be added in a future update.`,
-                [{ text: 'OK' }]
-              );
-            }
-          }
-        ]
-      );
+      setSelectedAttendee(attendee);
+      setShowConnectModal(true);
     };
 
     return (
@@ -1433,8 +1387,61 @@ const EventScreen = () => {
           </KeyboardAvoidingView>
         </Modal>
       )}
+      {/* Custom Connect Modal */}
+      <ConnectModal
+        visible={showConnectModal}
+        onClose={() => {
+          setShowConnectModal(false);
+          setSelectedAttendee(null);
+        }}
+        attendee={selectedAttendee}
+        onStartChat={() => {
+          if (!selectedAttendee) return;
+
+          router.push({
+            pathname: '/(app-screens)/(chat)/direct-chat' as any,
+            params: {
+              recipientId: selectedAttendee.uid,
+              recipientName: selectedAttendee.fullName,
+              recipientPhone: selectedAttendee.phoneNumber
+            }
+          });
+
+          setShowConnectModal(false);
+        }}
+        onViewProfile={() => {
+          setShowConnectModal(false);
+          setShowProfileModal(true);
+        }}
+        themeColors={themeColors}
+      />
+
+      {/* Custom Profile Modal */}
+      <ProfileModal
+        visible={showProfileModal}
+        onClose={() => {
+          setShowProfileModal(false);
+          setSelectedAttendee(null);
+        }}
+        attendee={selectedAttendee}
+        onStartChat={() => {
+          if (!selectedAttendee) return;
+
+          router.push({
+            pathname: '/(app-screens)/(chat)/direct-chat' as any,
+            params: {
+              recipientId: selectedAttendee.uid,
+              recipientName: selectedAttendee.fullName,
+              recipientPhone: selectedAttendee.phoneNumber
+            }
+          });
+
+          setShowProfileModal(false);
+        }}
+        themeColors={themeColors}
+      />
     </View>
-  );
+  )
 };
 
 export default EventScreen;

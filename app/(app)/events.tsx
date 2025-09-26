@@ -216,7 +216,7 @@ const Events = () => {
         time: time.trim(),
         location: location.trim(),
         creatorId: user.uid,
-        creatorName: userProfile.phoneNumber || 'Anonymous',
+        creatorName: userProfile.fullName || 'Anonymous', // ← Switched name to fullName
         attendees: [],
         createdAt: Date.now(),
       };

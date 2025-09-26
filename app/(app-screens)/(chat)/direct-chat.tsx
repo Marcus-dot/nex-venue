@@ -11,6 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Dimensions,
     ScrollView,
     Text,
     TextInput,
@@ -41,6 +42,9 @@ const DirectChat = () => {
     const [sending, setSending] = useState(false);
     const [conversationId, setConversationId] = useState<string>('');
 
+    // Dynamic screen dimensions
+    const [screenData, setScreenData] = useState(Dimensions.get('window'));
+
     const scrollViewRef = useRef<ScrollView>(null);
 
     // Theme-aware colors
@@ -59,6 +63,15 @@ const DirectChat = () => {
         sendButtonActive: '#e85c29',
         emptyStateText: activeTheme === 'light' ? '#6b7280' : '#9ca3af'
     };
+
+    // Listen for dimension changes
+    useEffect(() => {
+        const subscription = Dimensions.addEventListener('change', ({ window }) => {
+            setScreenData(window);
+        });
+
+        return () => subscription?.remove();
+    }, []);
 
     useEffect(() => {
         if (!recipientId || !user) return;
@@ -128,6 +141,10 @@ const DirectChat = () => {
         );
     };
 
+    // Calculate dynamic keyboard spacing based on screen height
+    const dynamicExtraHeight = Math.max(150, screenData.height * 0.2); // 20% of screen height, minimum 150
+    const dynamicExtraScrollHeight = Math.max(120, screenData.height * 0.15); // 15% of screen height, minimum 120
+
     return (
         <KeyboardAwareScrollView
             contentContainerStyle={{ flex: 1 }}
@@ -135,8 +152,8 @@ const DirectChat = () => {
             keyboardShouldPersistTaps="handled"
             enableOnAndroid={true}
             enableAutomaticScroll={true}
-            extraHeight={150}
-            extraScrollHeight={150}
+            extraHeight={dynamicExtraHeight}
+            extraScrollHeight={dynamicExtraScrollHeight}
             keyboardOpeningTime={250}
             style={{ flex: 1, backgroundColor: themeColors.background }}
         >
@@ -236,7 +253,7 @@ const DirectChat = () => {
                                     backgroundColor: themeColors.input,
                                     color: themeColors.inputText,
                                     borderColor: themeColors.inputBorder,
-                                    maxHeight: 100,
+                                    maxHeight: Math.min(100, screenData.height * 0.12), // Dynamic max height: 12% of screen or 100px max
                                 }}
                                 className="px-4 py-3 rounded-2xl font-rubik border"
                                 multiline
@@ -271,4 +288,4 @@ const DirectChat = () => {
     );
 };
 
-export default DirectChat;
+export default DirectChat

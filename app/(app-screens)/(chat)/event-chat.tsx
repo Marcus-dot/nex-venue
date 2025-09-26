@@ -161,9 +161,9 @@ const EventChat = () => {
             extraHeight={dynamicExtraHeight}
             extraScrollHeight={dynamicExtraScrollHeight}
             keyboardOpeningTime={250}
-            style={{ flex: 1, backgroundColor: themeColors.background }}
+            style={{ height: screenData.height, backgroundColor: themeColors.background }}
         >
-            <SafeAreaView className="flex-1" style={{ backgroundColor: themeColors.background }}>
+            <SafeAreaView style={{ width: '100%', height: '100%', backgroundColor: themeColors.background }}>
                 {/* Header */}
                 <View
                     className="flex-row items-center justify-between px-6 py-4 border-b"

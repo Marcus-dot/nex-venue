@@ -3,7 +3,6 @@ import { useTheme } from '@/context/theme-context';
 import { AgendaItem as AgendaItemType } from '@/types/agenda';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import SpeakerImageCarousel from './speaker-image-carousel';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
@@ -17,6 +16,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import SpeakerImageCarousel from './speaker-image-carousel';
 
 interface AgendaItemProps {
     item: AgendaItemType;
@@ -47,7 +47,6 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     const showModal = useCallback(() => {
         setSpeakerModalVisible(true);
 
-        // Delay StatusBar change to avoid timing conflicts
         setTimeout(() => {
             StatusBar.setBarStyle('light-content', true);
         }, 50);
@@ -74,7 +73,6 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     }, [fadeAnim, slideAnim, scaleAnim]);
 
     const hideModal = useCallback(() => {
-        // Delay StatusBar change to avoid timing conflicts
         setTimeout(() => {
             StatusBar.setBarStyle(activeTheme === 'light' ? 'dark-content' : 'light-content', true);
         }, 50);
@@ -108,9 +106,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         }
     }, [isSpeakerModalVisible, slideAnim, fadeAnim, scaleAnim]);
 
-    // Enhanced theme colors with better contrast and accessibility
     const themeColors = {
-        // Basic colors
         background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
         surface: activeTheme === 'light' ? '#ffffff' : '#1f2937',
         surfaceSecondary: activeTheme === 'light' ? '#f8fafc' : '#111827',
@@ -120,44 +116,25 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         textTertiary: activeTheme === 'light' ? '#94a3b8' : '#9ca3af',
         border: activeTheme === 'light' ? '#e2e8f0' : '#374151',
         borderLight: activeTheme === 'light' ? '#f1f5f9' : '#1f2937',
-
-        // Card styles
         cardDefault: activeTheme === 'light' ? '#ffffff' : '#1f2937',
         cardDefaultBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.8)' : 'rgba(71, 85, 105, 0.6)',
         cardDefaultShadow: activeTheme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(0, 0, 0, 0.2)',
-
-        // Break item styling
         breakBackground: activeTheme === 'light' ? 'rgba(248, 250, 252, 0.9)' : 'rgba(17, 24, 39, 0.8)',
         breakBorder: activeTheme === 'light' ? 'rgba(226, 232, 240, 0.6)' : 'rgba(71, 85, 105, 0.4)',
         breakIcon: activeTheme === 'light' ? '#64748b' : '#94a3b8',
-
-        // Live item highlights
-        currentBackground: activeTheme === 'light'
-            ? 'rgba(232, 92, 41, 0.08)'
-            : 'rgba(232, 92, 41, 0.12)',
+        currentBackground: activeTheme === 'light' ? 'rgba(232, 92, 41, 0.08)' : 'rgba(232, 92, 41, 0.12)',
         currentBorder: '#e85c29',
         currentGlow: activeTheme === 'light' ? 'rgba(232, 92, 41, 0.2)' : 'rgba(232, 92, 41, 0.3)',
-
-        // Time and accent colors
         timeAccent: '#e85c29',
-        timeBackground: activeTheme === 'light'
-            ? 'rgba(232, 92, 41, 0.1)'
-            : 'rgba(232, 92, 41, 0.15)',
-
-        // Admin controls
+        timeBackground: activeTheme === 'light' ? 'rgba(232, 92, 41, 0.1)' : 'rgba(232, 92, 41, 0.15)',
         adminButtonBg: activeTheme === 'light' ? '#f8fafc' : '#111827',
         adminButtonBorder: activeTheme === 'light' ? '#e2e8f0' : '#374151',
-
-        // Modal specific
         modalOverlay: activeTheme === 'light' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.6)',
         modalSurface: activeTheme === 'light' ? '#ffffff' : '#1f2937',
         modalBorder: activeTheme === 'light' ? '#e2e8f0' : '#374151',
-
-        // Category colors base
         categoryAlpha: activeTheme === 'light' ? '0.12' : '0.2',
     };
 
-    // Memoize category config to avoid recalculation during renders
     const categoryConfig = useMemo(() => {
         const configs = {
             keynote: {
@@ -208,7 +185,6 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     }, [item.category, activeTheme, themeColors.categoryAlpha]);
 
     const formatTime = (time: string) => {
-        // Simple time formatting - you might want to enhance this
         return time;
     };
 
@@ -311,71 +287,41 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                         </Text>
                     )}
 
-                    {/* Speaker and Location */}
-                    <View style={{ gap: 8 }}>
-                        {item.speaker && (
+                    {/* Speaker - REMOVED LOCATION FROM CARD */}
+                    {item.speaker && (
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                        }}>
                             <View style={{
-                                flexDirection: 'row',
+                                width: 24,
+                                height: 24,
+                                borderRadius: 12,
+                                backgroundColor: `${themeColors.timeAccent}20`,
                                 alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: 10,
                             }}>
-                                <View style={{
-                                    width: 24,
-                                    height: 24,
-                                    borderRadius: 12,
-                                    backgroundColor: `${themeColors.timeAccent}20`,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginRight: 10,
-                                }}>
-                                    <Feather name="user" size={12} color={themeColors.timeAccent} />
-                                </View>
-                                <Text style={{
-                                    fontFamily: 'Rubik_500Medium',
-                                    fontSize: 14,
-                                    color: themeColors.textSecondary,
-                                    flex: 1,
-                                }}>
-                                    {item.speaker}
-                                </Text>
-                                {item.speaker && (
-                                    <Text style={{
-                                        fontFamily: 'Rubik_400Regular',
-                                        fontSize: 11,
-                                        color: themeColors.textTertiary,
-                                        fontStyle: 'italic',
-                                    }}>
-                                        Tap to view details
-                                    </Text>
-                                )}
+                                <Feather name="user" size={12} color={themeColors.timeAccent} />
                             </View>
-                        )}
-
-                        {item.location && (
-                            <View style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
+                            <Text style={{
+                                fontFamily: 'Rubik_500Medium',
+                                fontSize: 14,
+                                color: themeColors.textSecondary,
+                                flex: 1,
                             }}>
-                                <View style={{
-                                    width: 24,
-                                    height: 24,
-                                    borderRadius: 12,
-                                    backgroundColor: `${categoryConfig.text}20`,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginRight: 10,
-                                }}>
-                                    <Feather name="map-pin" size={12} color={categoryConfig.text} />
-                                </View>
-                                <Text style={{
-                                    fontFamily: 'Rubik_400Regular',
-                                    fontSize: 14,
-                                    color: themeColors.textTertiary,
-                                }}>
-                                    {item.location}
-                                </Text>
-                            </View>
-                        )}
-                    </View>
+                                {item.speaker}
+                            </Text>
+                            <Text style={{
+                                fontFamily: 'Rubik_400Regular',
+                                fontSize: 11,
+                                color: themeColors.textTertiary,
+                                fontStyle: 'italic',
+                            }}>
+                                Tap to view details
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Current Item Indicator */}
@@ -627,14 +573,14 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                         const images = item.speakerImages && item.speakerImages.length > 0
                                             ? item.speakerImages
                                             : item.speakerImage ? [item.speakerImage] : [];
-                                        
+
                                         if (images.length > 0) {
                                             return <SpeakerImageCarousel images={images} activeTheme={activeTheme} />;
                                         }
                                         return null;
                                     })()}
 
-                                    {/* Session Details */}
+                                    {/* Session Details - LOCATION KEPT IN MODAL */}
                                     <View style={{
                                         backgroundColor: themeColors.surfaceElevated,
                                         borderRadius: 16,
@@ -693,6 +639,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                                 </Text>
                                             </View>
 
+                                            {/* LOCATION STILL SHOWS IN MODAL */}
                                             {item.location && (
                                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                     <Feather name="map-pin" size={16} color={themeColors.textTertiary} />

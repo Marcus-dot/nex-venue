@@ -1,3 +1,4 @@
+// context/theme-context.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Appearance } from 'react-native';
@@ -6,15 +7,15 @@ type ThemeType = 'light' | 'dark' | 'system';
 
 type ThemeContextType = {
     theme: ThemeType;
-    activeTheme: 'light' | 'dark'; // The actual theme being used (resolved from system if needed)
+    activeTheme: 'light' | 'dark';
     setTheme: (theme: ThemeType) => void;
     toggleTheme: () => void;
     isLoading: boolean;
 };
 
 const ThemeContext = createContext<ThemeContextType>({
-    theme: 'system',
-    activeTheme: 'dark',
+    theme: 'light', // Changed default to 'light'
+    activeTheme: 'light', // Changed default to 'light'
     setTheme: () => { },
     toggleTheme: () => { },
     isLoading: true,
@@ -23,8 +24,8 @@ const ThemeContext = createContext<ThemeContextType>({
 const THEME_STORAGE_KEY = 'app_theme_preference';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setThemeState] = useState<ThemeType>('system');
-    const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>('dark');
+    const [theme, setThemeState] = useState<ThemeType>('light'); // Changed default to 'light'
+    const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>('light'); // Changed default to 'light'
     const [isLoading, setIsLoading] = useState(true);
 
     // Get system color scheme
@@ -45,15 +46,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const loadThemePreference = async () => {
         try {
             const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-            const themeToUse: ThemeType = (savedTheme as ThemeType) || 'system';
+            // Changed default fallback to 'light' instead of 'system'
+            const themeToUse: ThemeType = (savedTheme as ThemeType) || 'light';
 
             setThemeState(themeToUse);
             setActiveTheme(resolveActiveTheme(themeToUse));
         } catch (error) {
             console.error('Error loading theme preference:', error);
-            // Fallback to system theme
-            setThemeState('system');
-            setActiveTheme(getSystemTheme());
+            // Fallback to light theme instead of system
+            setThemeState('light');
+            setActiveTheme('light');
         } finally {
             setIsLoading(false);
         }

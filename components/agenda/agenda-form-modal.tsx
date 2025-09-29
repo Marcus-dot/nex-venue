@@ -1,10 +1,11 @@
+import MultiImagePicker from './multi-image-picker';
 import ActionButton from '@/components/action-button';
-import ImagePickerComponent from '@/components/image-picker';
 import { TEXT_SIZE } from '@/constants';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/context/theme-context';
 import { agendaService } from '@/services/agenda';
 import { AgendaItem } from '@/types/agenda';
+import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,7 +33,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
     const [date, setDate] = useState('');
     const [speaker, setSpeaker] = useState('');
     const [speakerBio, setSpeakerBio] = useState('');
-    const [speakerImage, setSpeakerImage] = useState(''); // NEW: Speaker image state
+    const [speakerImages, setSpeakerImages] = useState<string[]>([]);
     const [location, setLocation] = useState('');
     const [category, setCategory] = useState<AgendaItem['category']>('presentation');
     const [isBreak, setIsBreak] = useState(false);
@@ -78,7 +79,16 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setDate(editingItem.date);
             setSpeaker(editingItem.speaker || '');
             setSpeakerBio(editingItem.speakerBio || '');
-            setSpeakerImage(editingItem.speakerImage || ''); // NEW: Load existing speaker image
+            
+            // Load speaker images - prioritize array, fallback to single image
+            if (editingItem.speakerImages && editingItem.speakerImages.length > 0) {
+                setSpeakerImages(editingItem.speakerImages);
+            } else if (editingItem.speakerImage) {
+                setSpeakerImages([editingItem.speakerImage]);
+            } else {
+                setSpeakerImages([]);
+            }
+            
             setLocation(editingItem.location || '');
             setCategory(editingItem.category || 'presentation');
             setIsBreak(editingItem.isBreak || false);
@@ -91,7 +101,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setDate('');
             setSpeaker('');
             setSpeakerBio('');
-            setSpeakerImage(''); // NEW: Reset speaker image
+            setSpeakerImages([]);
             setLocation('');
             setCategory('presentation');
             setIsBreak(false);
@@ -118,13 +128,11 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
         return true;
     };
 
-    // ✅ FIXED: handleSave function without undefined values
     const handleSave = async () => {
         if (!validateForm() || !user) return;
 
         setLoading(true);
         try {
-            // Build itemData without undefined values
             const itemData: any = {
                 title: title.trim(),
                 startTime: startTime.trim(),
@@ -137,7 +145,6 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                 lastEditedBy: user.uid,
             };
 
-            // Only add optional fields if they have values (don't use || undefined)
             if (description.trim()) {
                 itemData.description = description.trim();
             }
@@ -150,8 +157,11 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                 itemData.speakerBio = speakerBio.trim();
             }
 
-            if (speakerImage.trim()) {
-                itemData.speakerImage = speakerImage.trim();
+            // Save speaker images array
+            if (speakerImages.length > 0) {
+                itemData.speakerImages = speakerImages;
+                // Also save the first image as speakerImage for backwards compatibility
+                itemData.speakerImage = speakerImages[0];
             }
 
             if (location.trim()) {
@@ -377,32 +387,38 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             />
                         </View>
 
-                        {/* NEW: Speaker Poster Image Upload */}
+                        {/* Multiple Speaker Images (for panels) */}
                         {speaker.trim() && (
                             <View className="mb-4">
-                                <Text
-                                    style={{ fontSize: TEXT_SIZE * 0.8, color: themeColors.text }}
-                                    className="font-rubik-medium mb-2"
-                                >
-                                    Speaker Poster/Image
-                                </Text>
-                                <ImagePickerComponent
-                                    onImageUploaded={(imageUrl) => setSpeakerImage(imageUrl)}
-                                    onImageRemoved={() => setSpeakerImage('')}
-                                    currentImageUrl={speakerImage}
+                                <MultiImagePicker
+                                    images={speakerImages}
+                                    onImagesChange={setSpeakerImages}
+                                    maxImages={10}
                                     disabled={loading}
                                 />
-                                {speakerImage && (
-                                    <Text
+                                
+                                {/* Info helper for panels */}
+                                {category === 'panel' && (
+                                    <View
+                                        className="mt-2 p-3 rounded-lg border flex-row items-start"
                                         style={{
-                                            fontSize: TEXT_SIZE * 0.7,
-                                            color: themeColors.textTertiary,
-                                            marginTop: 4
+                                            backgroundColor: themeColors.helperBackground,
+                                            borderColor: themeColors.helperBorder
                                         }}
-                                        className="font-rubik"
                                     >
-                                        Speaker poster uploaded successfully
-                                    </Text>
+                                        <Feather 
+                                            name="info" 
+                                            size={16} 
+                                            color={themeColors.helperText}
+                                            style={{ marginRight: 8, marginTop: 2 }}
+                                        />
+                                        <Text
+                                            className="font-rubik text-xs flex-1"
+                                            style={{ color: themeColors.helperText }}
+                                        >
+                                            For panel discussions, add multiple speaker images. They'll appear as a carousel.
+                                        </Text>
+                                    </View>
                                 )}
                             </View>
                         )}

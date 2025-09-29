@@ -3,7 +3,7 @@ import { useTheme } from '@/context/theme-context';
 import { AgendaItem as AgendaItemType } from '@/types/agenda';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { Image } from 'expo-image';
+import SpeakerImageCarousel from './speaker-image-carousel';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
@@ -39,7 +39,6 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
     const { activeTheme } = useTheme();
 
     const [isSpeakerModalVisible, setSpeakerModalVisible] = useState(false);
-    const [imageLoadError, setImageLoadError] = useState(false);
     const slideAnim = useRef(new Animated.Value(screenHeight)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -98,7 +97,6 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
             })
         ]).start(() => {
             setSpeakerModalVisible(false);
-            setImageLoadError(false); // Reset image error state
         });
     }, [activeTheme, fadeAnim, slideAnim, scaleAnim]);
 
@@ -110,14 +108,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         }
     }, [isSpeakerModalVisible, slideAnim, fadeAnim, scaleAnim]);
 
-    // Reset image error when speaker image changes - with proper timing
-    useEffect(() => {
-        if (item.speakerImage) {
-            setImageLoadError(false);
-        }
-    }, [item.speakerImage]);
-
-    // Enhanced theme colors with better contrast and accessibility - moved outside of effects
+    // Enhanced theme colors with better contrast and accessibility
     const themeColors = {
         // Basic colors
         background: activeTheme === 'light' ? '#D8D9D4' : '#161616',
@@ -216,65 +207,10 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
         return configs[item.category as keyof typeof configs] || configs.other;
     }, [item.category, activeTheme, themeColors.categoryAlpha]);
 
-    // Enhanced category configurations
-    const getCategoryConfig = (category?: string) => {
-        const configs = {
-            keynote: {
-                bg: `rgba(147, 51, 234, ${themeColors.categoryAlpha})`,
-                border: 'rgba(147, 51, 234, 0.3)',
-                text: activeTheme === 'light' ? '#7c3aed' : '#a855f7',
-                icon: 'mic' as const
-            },
-            presentation: {
-                bg: `rgba(59, 130, 246, ${themeColors.categoryAlpha})`,
-                border: 'rgba(59, 130, 246, 0.3)',
-                text: activeTheme === 'light' ? '#2563eb' : '#60a5fa',
-                icon: 'monitor' as const
-            },
-            panel: {
-                bg: `rgba(16, 185, 129, ${themeColors.categoryAlpha})`,
-                border: 'rgba(16, 185, 129, 0.3)',
-                text: activeTheme === 'light' ? '#059669' : '#34d399',
-                icon: 'users' as const
-            },
-            workshop: {
-                bg: `rgba(245, 158, 11, ${themeColors.categoryAlpha})`,
-                border: 'rgba(245, 158, 11, 0.3)',
-                text: activeTheme === 'light' ? '#d97706' : '#fbbf24',
-                icon: 'tool' as const
-            },
-            networking: {
-                bg: `rgba(236, 72, 153, ${themeColors.categoryAlpha})`,
-                border: 'rgba(236, 72, 153, 0.3)',
-                text: activeTheme === 'light' ? '#be185d' : '#f472b6',
-                icon: 'coffee' as const
-            },
-            break: {
-                bg: `rgba(107, 114, 128, ${themeColors.categoryAlpha})`,
-                border: 'rgba(107, 114, 128, 0.3)',
-                text: activeTheme === 'light' ? '#6b7280' : '#9ca3af',
-                icon: 'pause' as const
-            },
-            other: {
-                bg: `rgba(75, 85, 99, ${themeColors.categoryAlpha})`,
-                border: 'rgba(75, 85, 99, 0.3)',
-                text: activeTheme === 'light' ? '#4b5563' : '#9ca3af',
-                icon: 'calendar' as const
-            }
-        };
-
-        return configs[category as keyof typeof configs] || configs.other;
-    };
-
     const formatTime = (time: string) => {
         // Simple time formatting - you might want to enhance this
         return time;
     };
-
-    // Callback for handling image errors safely
-    const handleImageError = useCallback(() => {
-        setImageLoadError(true);
-    }, []);
 
     return (
         <>
@@ -600,22 +536,21 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                     }} />
                                 </View>
 
-                                {/* ✅ FIXED: ScrollView with proper scrolling */}
                                 <ScrollView
                                     showsVerticalScrollIndicator={true}
-                                    bounces={true}  // ✅ Changed from false to true for better scroll behavior
-                                    scrollEnabled={true}  // ✅ Explicitly enable scrolling
-                                    nestedScrollEnabled={true}  // ✅ Important for Android
+                                    bounces={true}
+                                    scrollEnabled={true}
+                                    nestedScrollEnabled={true}
                                     contentContainerStyle={{
                                         paddingHorizontal: 24,
                                         paddingBottom: 40,
-                                        flexGrow: 1,  // ✅ Allow content to grow
+                                        flexGrow: 1,
                                     }}
                                     style={{
                                         backgroundColor: themeColors.modalSurface,
                                         borderTopLeftRadius: 24,
                                         borderTopRightRadius: 24,
-                                        maxHeight: screenHeight * 0.75,  // ✅ Slightly reduced to ensure scroll space
+                                        maxHeight: screenHeight * 0.75,
                                     }}
                                 >
                                     {/* Header */}
@@ -687,30 +622,17 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                         </Text>
                                     </View>
 
-                                    {/* NEW: Speaker Poster/Image */}
-                                    {item.speakerImage && !imageLoadError && (
-                                        <View style={{
-                                            marginBottom: 24,
-                                            borderRadius: 16,
-                                            overflow: 'hidden',
-                                            shadowColor: '#000',
-                                            shadowOffset: { width: 0, height: 4 },
-                                            shadowOpacity: 0.1,
-                                            shadowRadius: 12,
-                                            elevation: 6,
-                                        }}>
-                                            <Image
-                                                source={{ uri: item.speakerImage }}
-                                                style={{
-                                                    width: '100%',
-                                                    height: screenWidth * 0.5, // 16:10 aspect ratio for poster
-                                                }}
-                                                contentFit="contain"
-                                                transition={200}
-                                                onError={handleImageError}
-                                            />
-                                        </View>
-                                    )}
+                                    {/* Speaker Images Carousel */}
+                                    {(() => {
+                                        const images = item.speakerImages && item.speakerImages.length > 0
+                                            ? item.speakerImages
+                                            : item.speakerImage ? [item.speakerImage] : [];
+                                        
+                                        if (images.length > 0) {
+                                            return <SpeakerImageCarousel images={images} activeTheme={activeTheme} />;
+                                        }
+                                        return null;
+                                    })()}
 
                                     {/* Session Details */}
                                     <View style={{

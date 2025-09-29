@@ -600,18 +600,22 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                     }} />
                                 </View>
 
+                                {/* ✅ FIXED: ScrollView with proper scrolling */}
                                 <ScrollView
-                                    showsVerticalScrollIndicator={false}
-                                    bounces={false}
+                                    showsVerticalScrollIndicator={true}
+                                    bounces={true}  // ✅ Changed from false to true for better scroll behavior
+                                    scrollEnabled={true}  // ✅ Explicitly enable scrolling
+                                    nestedScrollEnabled={true}  // ✅ Important for Android
                                     contentContainerStyle={{
                                         paddingHorizontal: 24,
                                         paddingBottom: 40,
+                                        flexGrow: 1,  // ✅ Allow content to grow
                                     }}
                                     style={{
                                         backgroundColor: themeColors.modalSurface,
                                         borderTopLeftRadius: 24,
                                         borderTopRightRadius: 24,
-                                        maxHeight: screenHeight * 0.8,
+                                        maxHeight: screenHeight * 0.75,  // ✅ Slightly reduced to ensure scroll space
                                     }}
                                 >
                                     {/* Header */}

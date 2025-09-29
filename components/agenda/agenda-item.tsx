@@ -438,6 +438,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
             </TouchableOpacity>
 
             {/* Enhanced Speaker Modal with Blur */}
+
             <Modal
                 visible={isSpeakerModalVisible}
                 transparent
@@ -482,201 +483,213 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                     }} />
                                 </View>
 
-                                <ScrollView
-                                    showsVerticalScrollIndicator={true}
-                                    bounces={true}
-                                    scrollEnabled={true}
-                                    nestedScrollEnabled={true}
-                                    contentContainerStyle={{
-                                        paddingHorizontal: 24,
-                                        paddingBottom: 40,
-                                        flexGrow: 1,
-                                    }}
+                                {/* ✅ FIXED: Simplified - just prevent Pressable from receiving events */}
+                                <Pressable
                                     style={{
                                         backgroundColor: themeColors.modalSurface,
                                         borderTopLeftRadius: 24,
                                         borderTopRightRadius: 24,
                                         maxHeight: screenHeight * 0.75,
                                     }}
+                                    onPress={(e) => {
+                                        // Stop propagation to parent Pressable that dismisses modal
+                                        e.stopPropagation();
+                                    }}
                                 >
-                                    {/* Header */}
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        marginBottom: 24,
-                                        paddingTop: 8,
-                                    }}>
-                                        <View
-                                            style={{
-                                                width: 64,
-                                                height: 64,
-                                                borderRadius: 32,
-                                                backgroundColor: categoryConfig.bg,
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                marginRight: 16,
-                                                borderWidth: 1,
-                                                borderColor: categoryConfig.border,
-                                            }}
-                                        >
-                                            <Feather name="user" size={28} color={categoryConfig.text} />
-                                        </View>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={{
-                                                fontFamily: 'Rubik_700Bold',
-                                                fontSize: 24,
-                                                color: themeColors.text,
-                                                marginBottom: 4,
-                                            }}>
-                                                {item.speaker}
-                                            </Text>
-                                            <Text style={{
-                                                fontFamily: 'Rubik_500Medium',
-                                                fontSize: 14,
-                                                color: themeColors.textTertiary,
-                                                marginTop: 4,
-                                            }}>
-                                                Speaker
-                                            </Text>
-                                        </View>
-                                    </View>
-
-                                    {/* Bio Section */}
-                                    <View style={{
-                                        backgroundColor: themeColors.surfaceSecondary,
-                                        borderRadius: 16,
-                                        padding: 20,
-                                        marginBottom: 24,
-                                        borderWidth: 1,
-                                        borderColor: themeColors.borderLight,
-                                    }}>
-                                        <Text style={{
-                                            fontFamily: 'Rubik_600SemiBold',
-                                            fontSize: 16,
-                                            color: themeColors.text,
-                                            marginBottom: 12,
+                                    <ScrollView
+                                        showsVerticalScrollIndicator={true}
+                                        bounces={true}
+                                        scrollEnabled={true}
+                                        nestedScrollEnabled={true}
+                                        contentContainerStyle={{
+                                            paddingHorizontal: 24,
+                                            paddingBottom: 40,
+                                            flexGrow: 1,
+                                        }}
+                                    >
+                                        {/* Header */}
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            marginBottom: 24,
+                                            paddingTop: 8,
                                         }}>
-                                            About the Speaker
-                                        </Text>
-                                        <Text style={{
-                                            fontFamily: 'Rubik_400Regular',
-                                            fontSize: 16,
-                                            lineHeight: 24,
-                                            color: themeColors.textSecondary,
-                                        }}>
-                                            {item.speakerBio || 'No biography available for this speaker.'}
-                                        </Text>
-                                    </View>
-
-                                    {/* Speaker Images Carousel */}
-                                    {(() => {
-                                        const images = item.speakerImages && item.speakerImages.length > 0
-                                            ? item.speakerImages
-                                            : item.speakerImage ? [item.speakerImage] : [];
-
-                                        if (images.length > 0) {
-                                            return <SpeakerImageCarousel images={images} activeTheme={activeTheme} />;
-                                        }
-                                        return null;
-                                    })()}
-
-                                    {/* Session Details - LOCATION KEPT IN MODAL */}
-                                    <View style={{
-                                        backgroundColor: themeColors.surfaceElevated,
-                                        borderRadius: 16,
-                                        padding: 20,
-                                        marginBottom: 24,
-                                        borderWidth: 1,
-                                        borderColor: themeColors.border,
-                                        shadowColor: '#000',
-                                        shadowOffset: { width: 0, height: 2 },
-                                        shadowOpacity: activeTheme === 'light' ? 0.02 : 0.1,
-                                        shadowRadius: 6,
-                                        elevation: 2,
-                                    }}>
-                                        <Text style={{
-                                            fontFamily: 'Rubik_600SemiBold',
-                                            fontSize: 16,
-                                            color: themeColors.text,
-                                            marginBottom: 16,
-                                        }}>
-                                            Session Details
-                                        </Text>
-
-                                        <View style={{ marginBottom: 16 }}>
-                                            <Text style={{
-                                                fontFamily: 'Rubik_700Bold',
-                                                fontSize: 20,
-                                                color: themeColors.text,
-                                                marginBottom: 8,
-                                                lineHeight: 28,
-                                            }}>
-                                                {item.title}
-                                            </Text>
-                                            {item.description && (
+                                            <View
+                                                style={{
+                                                    width: 64,
+                                                    height: 64,
+                                                    borderRadius: 32,
+                                                    backgroundColor: categoryConfig.bg,
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    marginRight: 16,
+                                                    borderWidth: 1,
+                                                    borderColor: categoryConfig.border,
+                                                }}
+                                            >
+                                                <Feather name="user" size={28} color={categoryConfig.text} />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
                                                 <Text style={{
-                                                    fontFamily: 'Rubik_400Regular',
-                                                    fontSize: 15,
-                                                    color: themeColors.textSecondary,
-                                                    lineHeight: 22,
-                                                    marginBottom: 16,
+                                                    fontFamily: 'Rubik_700Bold',
+                                                    fontSize: 24,
+                                                    color: themeColors.text,
+                                                    marginBottom: 4,
                                                 }}>
-                                                    {item.description}
+                                                    {item.speaker}
                                                 </Text>
-                                            )}
-                                        </View>
-
-                                        <View style={{ gap: 12 }}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                <Feather name="clock" size={16} color={themeColors.textTertiary} />
                                                 <Text style={{
                                                     fontFamily: 'Rubik_500Medium',
                                                     fontSize: 14,
-                                                    color: themeColors.textSecondary,
-                                                    marginLeft: 12,
+                                                    color: themeColors.textTertiary,
+                                                    marginTop: 4,
                                                 }}>
-                                                    {formatTime(item.startTime)} - {formatTime(item.endTime)}
+                                                    Speaker
                                                 </Text>
                                             </View>
+                                        </View>
 
-                                            {/* LOCATION STILL SHOWS IN MODAL */}
-                                            {item.location && (
-                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                    <Feather name="map-pin" size={16} color={themeColors.textTertiary} />
+                                        {/* Bio Section */}
+                                        <View style={{
+                                            backgroundColor: themeColors.surfaceSecondary,
+                                            borderRadius: 16,
+                                            padding: 20,
+                                            marginBottom: 24,
+                                            borderWidth: 1,
+                                            borderColor: themeColors.borderLight,
+                                        }}>
+                                            <Text style={{
+                                                fontFamily: 'Rubik_600SemiBold',
+                                                fontSize: 16,
+                                                color: themeColors.text,
+                                                marginBottom: 12,
+                                            }}>
+                                                About the Speaker
+                                            </Text>
+                                            <Text style={{
+                                                fontFamily: 'Rubik_400Regular',
+                                                fontSize: 16,
+                                                lineHeight: 24,
+                                                color: themeColors.textSecondary,
+                                            }}>
+                                                {item.speakerBio || 'No biography available for this speaker.'}
+                                            </Text>
+                                        </View>
+
+                                        {/* Speaker Images Carousel */}
+                                        {(() => {
+                                            const images = item.speakerImages && item.speakerImages.length > 0
+                                                ? item.speakerImages
+                                                : item.speakerImage ? [item.speakerImage] : [];
+
+                                            if (images.length > 0) {
+                                                return <SpeakerImageCarousel images={images} activeTheme={activeTheme} />;
+                                            }
+                                            return null;
+                                        })()}
+
+                                        {/* Session Details */}
+                                        <View style={{
+                                            backgroundColor: themeColors.surfaceElevated,
+                                            borderRadius: 16,
+                                            padding: 20,
+                                            marginBottom: 24,
+                                            borderWidth: 1,
+                                            borderColor: themeColors.border,
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: activeTheme === 'light' ? 0.02 : 0.1,
+                                            shadowRadius: 6,
+                                            elevation: 2,
+                                        }}>
+                                            <Text style={{
+                                                fontFamily: 'Rubik_600SemiBold',
+                                                fontSize: 16,
+                                                color: themeColors.text,
+                                                marginBottom: 16,
+                                            }}>
+                                                Session Details
+                                            </Text>
+
+                                            <View style={{ marginBottom: 16 }}>
+                                                <Text style={{
+                                                    fontFamily: 'Rubik_700Bold',
+                                                    fontSize: 20,
+                                                    color: themeColors.text,
+                                                    marginBottom: 8,
+                                                    lineHeight: 28,
+                                                }}>
+                                                    {item.title}
+                                                </Text>
+                                                {item.description && (
                                                     <Text style={{
                                                         fontFamily: 'Rubik_400Regular',
+                                                        fontSize: 15,
+                                                        color: themeColors.textSecondary,
+                                                        lineHeight: 22,
+                                                        marginBottom: 16,
+                                                    }}>
+                                                        {item.description}
+                                                    </Text>
+                                                )}
+                                            </View>
+
+                                            <View style={{ gap: 12 }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <Feather name="clock" size={16} color={themeColors.textTertiary} />
+                                                    <Text style={{
+                                                        fontFamily: 'Rubik_500Medium',
                                                         fontSize: 14,
                                                         color: themeColors.textSecondary,
                                                         marginLeft: 12,
                                                     }}>
-                                                        {item.location}
+                                                        {formatTime(item.startTime)} - {formatTime(item.endTime)}
                                                     </Text>
                                                 </View>
-                                            )}
 
-                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                <Feather name="tag" size={16} color={themeColors.textTertiary} />
-                                                <Text style={{
-                                                    fontFamily: 'Rubik_400Regular',
-                                                    fontSize: 14,
-                                                    color: categoryConfig.text,
-                                                    marginLeft: 12,
-                                                }}>
-                                                    {item.category ? (item.category.charAt(0).toUpperCase() + item.category.slice(1)) : 'Other'}
-                                                </Text>
+                                                {item.location && (
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                        <Feather name="map-pin" size={16} color={themeColors.textTertiary} />
+                                                        <Text style={{
+                                                            fontFamily: 'Rubik_400Regular',
+                                                            fontSize: 14,
+                                                            color: themeColors.textSecondary,
+                                                            marginLeft: 12,
+                                                        }}>
+                                                            {item.location}
+                                                        </Text>
+                                                    </View>
+                                                )}
+
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <Feather name="tag" size={16} color={themeColors.textTertiary} />
+                                                    <Text style={{
+                                                        fontFamily: 'Rubik_400Regular',
+                                                        fontSize: 14,
+                                                        color: categoryConfig.text,
+                                                        marginLeft: 12,
+                                                    }}>
+                                                        {item.category ? (item.category.charAt(0).toUpperCase() + item.category.slice(1)) : 'Other'}
+                                                    </Text>
+                                                </View>
                                             </View>
                                         </View>
-                                    </View>
-                                </ScrollView>
+                                    </ScrollView>
+                                </Pressable>
 
                                 {/* Enhanced Close Button */}
-                                <View style={{
-                                    paddingHorizontal: screenWidth > 400 ? 40 : 24,
-                                    paddingTop: 16,
-                                    borderTopWidth: 1,
-                                    borderTopColor: themeColors.borderLight,
-                                    backgroundColor: themeColors.modalSurface,
-                                }}>
+                                <Pressable
+                                    style={{
+                                        paddingHorizontal: screenWidth > 400 ? 40 : 24,
+                                        paddingTop: 16,
+                                        borderTopWidth: 1,
+                                        borderTopColor: themeColors.borderLight,
+                                        backgroundColor: themeColors.modalSurface,
+                                    }}
+                                    onPress={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
                                     <TouchableOpacity
                                         onPress={hideModal}
                                         style={{
@@ -700,7 +713,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                             Close
                                         </Text>
                                     </TouchableOpacity>
-                                </View>
+                                </Pressable>
                             </Animated.View>
                         </Pressable>
                     </BlurView>

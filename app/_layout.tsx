@@ -51,6 +51,7 @@ export default function RootLayout() {
               <Stack.Screen name="(app)" options={{ headerShown: false }} />
               <Stack.Screen name="(app-screens)/(home)/event-screen" options={{ headerShown: false }} />
               <Stack.Screen name="(app-screens)/(profile)/edit-profile" options={{ headerShown: false }} />
+              <Stack.Screen name="(app-screens)/(notifications)/notification-list" options={{ headerShown: false }} />
               <Stack.Screen name="(app-screens)/(profile)/settings" options={{ headerShown: false }} />
               <Stack.Screen name="(app-screens)/(chat)/event-chat" options={{ headerShown: false }} />
               <Stack.Screen name="(app-screens)/(chat)/direct-chat" options={{ headerShown: false }} />

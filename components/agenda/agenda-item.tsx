@@ -457,6 +457,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                         tint={activeTheme === 'light' ? 'light' : 'dark'}
                         style={{ flex: 1 }}
                     >
+                        {/* Background Pressable for dismissing */}
                         <Pressable style={{ flex: 1 }} onPress={hideModal}>
                             <Animated.View
                                 style={{
@@ -467,13 +468,18 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                         { scale: scaleAnim }
                                     ],
                                 }}
+                                pointerEvents="box-none"
                             >
                                 {/* Handle */}
-                                <View style={{
-                                    alignItems: 'center',
-                                    paddingTop: 12,
-                                    paddingBottom: 8,
-                                }}>
+                                <View
+                                    style={{
+                                        alignItems: 'center',
+                                        paddingTop: 12,
+                                        paddingBottom: 8,
+                                    }}
+                                    onStartShouldSetResponder={() => true}
+                                    onResponderRelease={hideModal}
+                                >
                                     <View style={{
                                         width: 40,
                                         height: 4,
@@ -483,24 +489,21 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                     }} />
                                 </View>
 
-                                {/* ✅ FIXED: Simplified - just prevent Pressable from receiving events */}
-                                <Pressable
+                                {/* Content Container - Claims touches but allows ScrollView to work */}
+                                <View
                                     style={{
                                         backgroundColor: themeColors.modalSurface,
                                         borderTopLeftRadius: 24,
                                         borderTopRightRadius: 24,
                                         maxHeight: screenHeight * 0.75,
                                     }}
-                                    onPress={(e) => {
-                                        // Stop propagation to parent Pressable that dismisses modal
-                                        e.stopPropagation();
-                                    }}
+                                    onStartShouldSetResponder={() => true}
+                                    onMoveShouldSetResponder={() => false}
                                 >
                                     <ScrollView
                                         showsVerticalScrollIndicator={true}
                                         bounces={true}
                                         scrollEnabled={true}
-                                        nestedScrollEnabled={true}
                                         contentContainerStyle={{
                                             paddingHorizontal: 24,
                                             paddingBottom: 40,
@@ -675,10 +678,10 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                             </View>
                                         </View>
                                     </ScrollView>
-                                </Pressable>
+                                </View>
 
                                 {/* Enhanced Close Button */}
-                                <Pressable
+                                <View
                                     style={{
                                         paddingHorizontal: screenWidth > 400 ? 40 : 24,
                                         paddingTop: 16,
@@ -686,9 +689,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                         borderTopColor: themeColors.borderLight,
                                         backgroundColor: themeColors.modalSurface,
                                     }}
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                    }}
+                                    onStartShouldSetResponder={() => true}
                                 >
                                     <TouchableOpacity
                                         onPress={hideModal}
@@ -713,7 +714,7 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                                             Close
                                         </Text>
                                     </TouchableOpacity>
-                                </Pressable>
+                                </View>
                             </Animated.View>
                         </Pressable>
                     </BlurView>

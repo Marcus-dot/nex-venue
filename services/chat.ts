@@ -252,6 +252,43 @@ export const chatService = {
         }
     },
 
+    // Prepare notification data for new event message
+    prepareEventMessageNotification: (
+        eventId: string,
+        eventTitle: string,
+        senderName: string,
+        messagePreview: string,
+    ) => {
+        return {
+            type: 'event_message' as const,
+            title: `${eventTitle}`,
+            body: `${senderName}: ${messagePreview}`,
+            data: {
+                type: 'event_message' as const,
+                eventId,
+                senderName,
+            }
+        };
+    },
+
+    // Prepare notification data for direct message
+    prepareDirectMessageNotification: (
+        conversationId: string,
+        senderName: string,
+        messagePreview: string,
+    ) => {
+        return {
+            type: 'direct_message' as const,
+            title: `${senderName}`,
+            body: messagePreview,
+            data: {
+                type: 'direct_message' as const,
+                conversationId,
+                senderName,
+            }
+        };
+    },
+
     // Send system message
     sendSystemMessage: async (eventId: string, message: string): Promise<void> => {
         try {

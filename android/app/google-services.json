@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "264113197952",
+    "project_id": "nexvenue-2a4fa",
+    "storage_bucket": "nexvenue-2a4fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:264113197952:android:fd9ab6e8fc93abaaf06765",
+        "android_client_info": {
+          "package_name": "com.gralix.nexvenue"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbr3UGGU1PdfweE4bas6SNlhKE4ZO-ioc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

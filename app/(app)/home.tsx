@@ -1,24 +1,26 @@
+import AccessibleTouchable from '@/components/accessible-touchable';
+import { NotificationBell } from '@/components/notification-bell';
+import OptimizedEventList from '@/components/optimized-event-list';
+import PageTransition from '@/components/page-transition';
+import PlatformStatusBar from '@/components/platform-status-bar';
+import { ScreenReaderAnnouncement } from '@/components/screen-reader-helper';
+import { useAuth } from '@/context/auth-context';
+import { useNotifications } from '@/context/notification-context';
+import { useTheme } from '@/context/theme-context';
+import { useOptimizedFirestore } from '@/hooks/useOptimizedFirestore';
+import { useDebounce, useExpensiveOperation } from '@/hooks/usePerformance';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AccessibleTouchable from '@/components/accessible-touchable';
-import OptimizedEventList from '@/components/optimized-event-list';
-import PageTransition from '@/components/page-transition';
-import PlatformStatusBar from '@/components/platform-status-bar';
-import { ScreenReaderAnnouncement } from '@/components/screen-reader-helper';
-import { useAuth } from '@/context/auth-context';
-import { useTheme } from '@/context/theme-context';
-import { useOptimizedFirestore } from '@/hooks/useOptimizedFirestore';
-import { useDebounce, useExpensiveOperation } from '@/hooks/usePerformance';
-
 import { TEXT_SIZE } from '@/constants';
 import type { Event } from '@/types/events';
 
 const Home = () => {
   const { user, userProfile } = useAuth();
+  const { hasPermission, fcmToken, requestPermission } = useNotifications();
   const { activeTheme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,14 +182,19 @@ const Home = () => {
             {userProfile?.fullName || 'Event Explorer'}
           </Text>
         </View>
-        <AccessibleTouchable
-          onPress={handleViewProfile}
-          accessibilityLabel="View profile"
-          accessibilityHint="Navigate to your profile settings"
-          className="w-12 h-12 bg-accent rounded-full items-center justify-center"
-        >
-          <Feather name="user" size={20} color="white" />
-        </AccessibleTouchable>
+
+        {/* Notification Bell and Profile */}
+        <View className="flex-row items-center gap-3">
+          <NotificationBell />
+          <AccessibleTouchable
+            onPress={handleViewProfile}
+            accessibilityLabel="View profile"
+            accessibilityHint="Navigate to your profile settings"
+            className="w-12 h-12 bg-accent rounded-full items-center justify-center"
+          >
+            <Feather name="user" size={20} color="white" />
+          </AccessibleTouchable>
+        </View>
       </View>
 
       {/* Quick Actions - Admin Only Create Event */}

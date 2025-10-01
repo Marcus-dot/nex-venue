@@ -1,4 +1,3 @@
-import MultiImagePicker from './multi-image-picker';
 import ActionButton from '@/components/action-button';
 import { TEXT_SIZE } from '@/constants';
 import { useAuth } from '@/context/auth-context';
@@ -9,6 +8,7 @@ import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MultiImagePicker from './multi-image-picker';
 
 interface AgendaFormModalProps {
     visible: boolean;
@@ -66,6 +66,10 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
         { value: 'panel', label: 'Panel Discussion' },
         { value: 'workshop', label: 'Workshop' },
         { value: 'networking', label: 'Networking' },
+        { value: 'remarks', label: 'Remarks' },
+        { value: 'demo', label: 'Demo' },
+        { value: 'case_study', label: 'Case Study' },
+        { value: 'fireside', label: 'Fireside Chat' },
         { value: 'break', label: 'Break' },
         { value: 'other', label: 'Other' },
     ];
@@ -79,7 +83,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setDate(editingItem.date);
             setSpeaker(editingItem.speaker || '');
             setSpeakerBio(editingItem.speakerBio || '');
-            
+
             // Load speaker images - prioritize array, fallback to single image
             if (editingItem.speakerImages && editingItem.speakerImages.length > 0) {
                 setSpeakerImages(editingItem.speakerImages);
@@ -88,7 +92,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             } else {
                 setSpeakerImages([]);
             }
-            
+
             setLocation(editingItem.location || '');
             setCategory(editingItem.category || 'presentation');
             setIsBreak(editingItem.isBreak || false);
@@ -396,7 +400,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                     maxImages={10}
                                     disabled={loading}
                                 />
-                                
+
                                 {/* Info helper for panels */}
                                 {category === 'panel' && (
                                     <View
@@ -406,9 +410,9 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                             borderColor: themeColors.helperBorder
                                         }}
                                     >
-                                        <Feather 
-                                            name="info" 
-                                            size={16} 
+                                        <Feather
+                                            name="info"
+                                            size={16}
                                             color={themeColors.helperText}
                                             style={{ marginRight: 8, marginTop: 2 }}
                                         />

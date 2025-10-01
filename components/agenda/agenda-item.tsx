@@ -178,6 +178,30 @@ const AgendaItem: React.FC<AgendaItemProps> = ({
                 border: 'rgba(75, 85, 99, 0.3)',
                 text: activeTheme === 'light' ? '#4b5563' : '#9ca3af',
                 icon: 'calendar' as const
+            },
+            remarks: {
+                bg: `rgba(139, 92, 246, ${themeColors.categoryAlpha})`,
+                border: 'rgba(139, 92, 246, 0.3)',
+                text: activeTheme === 'light' ? '#7c3aed' : '#a78bfa',
+                icon: 'message-square' as const
+            },
+            demo: {
+                bg: `rgba(34, 197, 94, ${themeColors.categoryAlpha})`,
+                border: 'rgba(34, 197, 94, 0.3)',
+                text: activeTheme === 'light' ? '#16a34a' : '#4ade80',
+                icon: 'monitor' as const
+            },
+            case_study: {
+                bg: `rgba(249, 115, 22, ${themeColors.categoryAlpha})`,
+                border: 'rgba(249, 115, 22, 0.3)',
+                text: activeTheme === 'light' ? '#ea580c' : '#fb923c',
+                icon: 'book-open' as const
+            },
+            fireside: {
+                bg: `rgba(239, 68, 68, ${themeColors.categoryAlpha})`,
+                border: 'rgba(239, 68, 68, 0.3)',
+                text: activeTheme === 'light' ? '#dc2626' : '#f87171',
+                icon: 'message-circle' as const
             }
         };
 

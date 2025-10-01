@@ -8,7 +8,7 @@ export interface AgendaItem {
     date: string;
     speaker?: string;
     location?: string;
-    category?: 'presentation' | 'break' | 'networking' | 'workshop' | 'panel' | 'keynote' | 'other';
+    category?: 'presentation' | 'break' | 'networking' | 'workshop' | 'panel' | 'keynote' | 'remarks' | 'demo' | 'case_study' | 'fireside' | 'other';
     isBreak?: boolean;
     order: number;
     createdAt: number;

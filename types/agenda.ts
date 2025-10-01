@@ -13,11 +13,16 @@ export interface AgendaItem {
     order: number;
     createdAt: number;
     updatedAt: number;
-    createdBy: string; // admin who created this item
-    lastEditedBy: string; // admin who last edited this item
+    createdBy: string;
+    lastEditedBy: string;
     speakerBio?: string;
-    speakerImage?: string; // NEW: URL to speaker's profile image
-    speakerImages?: string[]; //... a carousel for multiple speaker images...
+    speakerImage?: string;
+    speakerImages?: string[];
+
+    // 🆕 NEW FIELDS FOR SIMULTANEOUS EVENTS
+    simultaneousGroupId?: string; // Groups simultaneous events (e.g., "side-events-oct3-1545")
+    attendeeSelections?: string[]; // Array of user IDs who selected this event
+    maxAttendees?: number; // Optional capacity limit
 }
 
 export interface EventAgenda {

@@ -38,6 +38,9 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
     const [category, setCategory] = useState<AgendaItem['category']>('presentation');
     const [isBreak, setIsBreak] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [simultaneousGroupId, setSimultaneousGroupId] = useState('');
+    const [maxAttendees, setMaxAttendees] = useState('');
+    const [isSimultaneous, setIsSimultaneous] = useState(false);
 
     // Theme-aware colors
     const themeColors = {
@@ -74,6 +77,24 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
         { value: 'other', label: 'Other' },
     ];
 
+    // Helper function to reset form
+    const resetForm = () => {
+        setTitle('');
+        setDescription('');
+        setStartTime('');
+        setEndTime('');
+        setDate('');
+        setSpeaker('');
+        setSpeakerBio('');
+        setSpeakerImages([]);
+        setLocation('');
+        setCategory('presentation');
+        setIsBreak(false);
+        setIsSimultaneous(false);
+        setSimultaneousGroupId('');
+        setMaxAttendees('');
+    };
+
     useEffect(() => {
         if (editingItem) {
             setTitle(editingItem.title);
@@ -96,19 +117,14 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             setLocation(editingItem.location || '');
             setCategory(editingItem.category || 'presentation');
             setIsBreak(editingItem.isBreak || false);
+
+            // Load simultaneous event fields
+            setIsSimultaneous(!!editingItem.simultaneousGroupId);
+            setSimultaneousGroupId(editingItem.simultaneousGroupId || '');
+            setMaxAttendees(editingItem.maxAttendees?.toString() || '');
         } else {
             // Reset form for new item
-            setTitle('');
-            setDescription('');
-            setStartTime('');
-            setEndTime('');
-            setDate('');
-            setSpeaker('');
-            setSpeakerBio('');
-            setSpeakerImages([]);
-            setLocation('');
-            setCategory('presentation');
-            setIsBreak(false);
+            resetForm();
         }
     }, [editingItem, visible]);
 
@@ -129,6 +145,13 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
             Alert.alert('Error', 'Date is required');
             return false;
         }
+
+        // Validate simultaneous event fields
+        if (isSimultaneous && !simultaneousGroupId.trim()) {
+            Alert.alert('Error', 'Group ID is required for simultaneous events');
+            return false;
+        }
+
         return true;
     };
 
@@ -170,6 +193,24 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
 
             if (location.trim()) {
                 itemData.location = location.trim();
+            }
+
+            // Add simultaneous event fields
+            if (isSimultaneous && simultaneousGroupId.trim()) {
+                itemData.simultaneousGroupId = simultaneousGroupId.trim();
+
+                if (maxAttendees && parseInt(maxAttendees) > 0) {
+                    itemData.maxAttendees = parseInt(maxAttendees);
+                }
+
+                // Initialize attendeeSelections array if creating new item
+                if (!editingItem) {
+                    itemData.attendeeSelections = [];
+                }
+            } else {
+                // Clear simultaneous fields if toggled off
+                itemData.simultaneousGroupId = null;
+                itemData.maxAttendees = null;
             }
 
             if (editingItem) {
@@ -285,7 +326,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 <TextInput
                                     value={startTime}
                                     onChangeText={setStartTime}
-                                    placeholder="e.g. 09:00 AM"
+                                    placeholder="e.g. 09:00"
                                     placeholderTextColor={themeColors.textTertiary}
                                     style={{
                                         fontSize: TEXT_SIZE,
@@ -306,7 +347,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 <TextInput
                                     value={endTime}
                                     onChangeText={setEndTime}
-                                    placeholder="e.g. 10:30 AM"
+                                    placeholder="e.g. 10:30"
                                     placeholderTextColor={themeColors.textTertiary}
                                     style={{
                                         fontSize: TEXT_SIZE,
@@ -330,7 +371,7 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                             <TextInput
                                 value={date}
                                 onChangeText={setDate}
-                                placeholder="e.g. 2025-01-15"
+                                placeholder="e.g. 2025-10-03"
                                 placeholderTextColor={themeColors.textTertiary}
                                 style={{
                                     fontSize: TEXT_SIZE,
@@ -530,6 +571,134 @@ const AgendaFormModal: React.FC<AgendaFormModalProps> = ({
                                 </Text>
                             </TouchableOpacity>
                         </View>
+
+                        {/* ===== NEW: SIMULTANEOUS EVENT SECTION ===== */}
+
+                        {/* Simultaneous Event Toggle */}
+                        <View className="mb-4">
+                            <TouchableOpacity
+                                onPress={() => setIsSimultaneous(!isSimultaneous)}
+                                className="flex-row items-center p-4 rounded-lg border"
+                                style={{
+                                    backgroundColor: themeColors.input,
+                                    borderColor: themeColors.inputBorder
+                                }}
+                            >
+                                <View
+                                    className="w-6 h-6 rounded border-2 items-center justify-center mr-3"
+                                    style={{
+                                        borderColor: isSimultaneous ? '#e85c29' : themeColors.inputBorder,
+                                        backgroundColor: isSimultaneous ? '#e85c29' : 'transparent'
+                                    }}
+                                >
+                                    {isSimultaneous && (
+                                        <Feather name="check" size={16} color="#ffffff" />
+                                    )}
+                                </View>
+                                <View className="flex-1">
+                                    <Text
+                                        className="font-rubik-semibold text-base"
+                                        style={{ color: themeColors.text }}
+                                    >
+                                        Simultaneous Event
+                                    </Text>
+                                    <Text
+                                        className="font-rubik text-xs mt-0.5"
+                                        style={{ color: themeColors.textSecondary }}
+                                    >
+                                        This event happens at the same time as other events
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Show these fields only if simultaneous is checked */}
+                        {isSimultaneous && (
+                            <>
+                                {/* Simultaneous Group ID */}
+                                <View className="mb-4">
+                                    <View className="flex-row items-center mb-2">
+                                        <Feather name="link" size={16} color={themeColors.text} />
+                                        <Text
+                                            className="font-rubik-semibold text-sm ml-2"
+                                            style={{ color: themeColors.text }}
+                                        >
+                                            Group ID *
+                                        </Text>
+                                    </View>
+                                    <TextInput
+                                        className="p-4 rounded-lg border font-rubik"
+                                        style={{
+                                            backgroundColor: themeColors.input,
+                                            borderColor: themeColors.inputBorder,
+                                            color: themeColors.inputText,
+                                            fontSize: TEXT_SIZE
+                                        }}
+                                        placeholder="e.g., side-events-oct3-1515"
+                                        placeholderTextColor={themeColors.textTertiary}
+                                        value={simultaneousGroupId}
+                                        onChangeText={setSimultaneousGroupId}
+                                    />
+                                    <Text
+                                        className="font-rubik text-xs mt-1"
+                                        style={{ color: themeColors.textSecondary }}
+                                    >
+                                        All events with the same Group ID will be grouped together
+                                    </Text>
+                                </View>
+
+                                {/* Max Attendees */}
+                                <View className="mb-4">
+                                    <View className="flex-row items-center mb-2">
+                                        <Feather name="users" size={16} color={themeColors.text} />
+                                        <Text
+                                            className="font-rubik-semibold text-sm ml-2"
+                                            style={{ color: themeColors.text }}
+                                        >
+                                            Maximum Attendees (Optional)
+                                        </Text>
+                                    </View>
+                                    <TextInput
+                                        className="p-4 rounded-lg border font-rubik"
+                                        style={{
+                                            backgroundColor: themeColors.input,
+                                            borderColor: themeColors.inputBorder,
+                                            color: themeColors.inputText,
+                                            fontSize: TEXT_SIZE
+                                        }}
+                                        placeholder="Leave empty for unlimited"
+                                        placeholderTextColor={themeColors.textTertiary}
+                                        value={maxAttendees}
+                                        onChangeText={setMaxAttendees}
+                                        keyboardType="number-pad"
+                                    />
+                                </View>
+
+                                {/* Helper Info Box */}
+                                <View
+                                    className="mb-4 p-3 rounded-lg border flex-row items-start"
+                                    style={{
+                                        backgroundColor: themeColors.helperBackground,
+                                        borderColor: themeColors.helperBorder
+                                    }}
+                                >
+                                    <Feather
+                                        name="info"
+                                        size={16}
+                                        color={themeColors.helperText}
+                                        style={{ marginRight: 8, marginTop: 2 }}
+                                    />
+                                    <Text
+                                        className="font-rubik text-xs flex-1"
+                                        style={{ color: themeColors.helperText }}
+                                    >
+                                        Attendees will be able to choose which of the simultaneous events they want to attend. You'll see selection statistics in the agenda view.
+                                    </Text>
+                                </View>
+                            </>
+                        )}
+
+                        {/* ===== END: SIMULTANEOUS EVENT SECTION ===== */}
 
                         {/* Save Button */}
                         <ActionButton

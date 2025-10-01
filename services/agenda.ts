@@ -165,6 +165,7 @@ export const agendaService = {
         }
     },
 
+
     // Delete agenda item (Admin only)
     deleteAgendaItem: async (itemId: string): Promise<void> => {
         try {
@@ -212,5 +213,94 @@ export const agendaService = {
             console.error('Error setting current agenda item:', error);
             throw error;
         }
-    }
+    },
+    // 🆕 SELECT SIMULTANEOUS EVENT (Attendee action)
+    selectSimultaneousEvent: async (
+        itemId: string,
+        userId: string,
+        simultaneousGroupId: string
+    ): Promise<void> => {
+        try {
+            const batch = firestore().batch();
+
+            // Get all items in this simultaneous group
+            const groupItems = await firestore()
+                .collection('agendas')
+                .where('simultaneousGroupId', '==', simultaneousGroupId)
+                .get();
+
+            groupItems.forEach(doc => {
+                const itemRef = firestore().collection('agendas').doc(doc.id);
+
+                if (doc.id === itemId) {
+                    // Add user to selected event
+                    batch.update(itemRef, {
+                        attendeeSelections: firestore.FieldValue.arrayUnion(userId),
+                        updatedAt: Date.now()
+                    });
+                } else {
+                    // Remove user from other events in the group
+                    batch.update(itemRef, {
+                        attendeeSelections: firestore.FieldValue.arrayRemove(userId),
+                        updatedAt: Date.now()
+                    });
+                }
+            });
+
+            await batch.commit();
+        } catch (error) {
+            console.error('Error selecting simultaneous event:', error);
+            throw error;
+        }
+    },
+
+    // 🆕 GET ATTENDEE'S SELECTION FOR A GROUP
+    getAttendeeSelection: async (
+        simultaneousGroupId: string,
+        userId: string
+    ): Promise<string | null> => {
+        try {
+            const groupItems = await firestore()
+                .collection('agendas')
+                .where('simultaneousGroupId', '==', simultaneousGroupId)
+                .get();
+
+            for (const doc of groupItems.docs) {
+                const data = doc.data() as AgendaItem;
+                if (data.attendeeSelections?.includes(userId)) {
+                    return doc.id; // Return the selected item ID
+                }
+            }
+
+            return null; // No selection made
+        } catch (error) {
+            console.error('Error getting attendee selection:', error);
+            throw error;
+        }
+    },
+
+    // 🆕 GET SELECTION STATS (Admin only)
+    getSimultaneousEventStats: async (
+        simultaneousGroupId: string
+    ): Promise<Array<{ id: string; title: string; selectionCount: number }>> => {
+        try {
+            const groupItems = await firestore()
+                .collection('agendas')
+                .where('simultaneousGroupId', '==', simultaneousGroupId)
+                .orderBy('startTime', 'asc')
+                .get();
+
+            return groupItems.docs.map(doc => {
+                const data = doc.data() as AgendaItem;
+                return {
+                    id: doc.id,
+                    title: data.title,
+                    selectionCount: data.attendeeSelections?.length || 0
+                };
+            });
+        } catch (error) {
+            console.error('Error getting simultaneous event stats:', error);
+            throw error;
+        }
+    },
 };

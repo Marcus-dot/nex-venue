@@ -6,6 +6,8 @@ import { Feather } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import AgendaItem from './agenda-item';
+import { SimultaneousEventSelector } from './simultaneous-event-selector';
+import { SimultaneousEventStats } from './simultaneous-event-stats';
 
 interface AgendaListProps {
     eventId: string;
@@ -234,6 +236,61 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
         const dates = new Set(agendaItems.map(item => item.date)).size;
 
         return { totalItems, sessions, breaks, dates };
+    };
+
+    // 🆕 NEW: Render agenda item with simultaneous event handling
+    const renderAgendaItem = (item: AgendaItemType, dateItems: AgendaItemType[]) => {
+        // Check if this item is part of a simultaneous group
+        const simultaneousGroup = item.simultaneousGroupId
+            ? dateItems.filter(i => i.simultaneousGroupId === item.simultaneousGroupId)
+            : null;
+
+        // If part of simultaneous group and this is the first item in the group
+        if (simultaneousGroup && simultaneousGroup.length > 1) {
+            const isFirstInGroup = simultaneousGroup[0].id === item.id;
+
+            if (isFirstInGroup) {
+                return (
+                    <View key={`simultaneous-${item.simultaneousGroupId}`} className="mb-6">
+                        {/* Show stats for admins */}
+                        {isAdmin && (
+                            <SimultaneousEventStats
+                                simultaneousGroupId={item.simultaneousGroupId!}
+                                groupTitle={`${item.startTime} - ${item.endTime}`}
+                                onEditItem={onEditItem}
+                                onDeleteItem={handleDeleteItem}
+                                onSetCurrent={handleSetCurrentItem}
+                            />
+                        )}
+
+                        {/* Show selector for regular attendees */}
+                        {!isAdmin && (
+                            <SimultaneousEventSelector
+                                events={simultaneousGroup}
+                                simultaneousGroupId={item.simultaneousGroupId!}
+                                onSelectionChange={handleRefresh}
+                            />
+                        )}
+                    </View>
+                );
+            } else {
+                // Don't render individual items that are part of a simultaneous group
+                return null;
+            }
+        }
+
+        // Regular item rendering (not part of simultaneous group)
+        return (
+            <View key={item.id} className="mb-6">
+                <AgendaItem
+                    item={item}
+                    isCurrentItem={currentAgendaItem === item.id}
+                    onEdit={isAdmin ? onEditItem : undefined}
+                    onDelete={isAdmin ? handleDeleteItem : undefined}
+                    onSetCurrent={isAdmin ? handleSetCurrentItem : undefined}
+                />
+            </View>
+        );
     };
 
     // Loading component
@@ -634,17 +691,7 @@ const AgendaList: React.FC<AgendaListProps> = ({ eventId, currentAgendaItem, onE
                         {/* Collapsible Agenda Items */}
                         {isExpanded && (
                             <View>
-                                {items.map((item, index) => (
-                                    <View key={item.id} className="mb-6">
-                                        <AgendaItem
-                                            item={item}
-                                            isCurrentItem={currentAgendaItem === item.id}
-                                            onEdit={isAdmin ? onEditItem : undefined}
-                                            onDelete={isAdmin ? handleDeleteItem : undefined}
-                                            onSetCurrent={isAdmin ? handleSetCurrentItem : undefined}
-                                        />
-                                    </View>
-                                ))}
+                                {items.map((item) => renderAgendaItem(item, items))}
                             </View>
                         )}
                     </View>
